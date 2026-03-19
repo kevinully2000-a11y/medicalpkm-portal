@@ -20,6 +20,31 @@ export default {
       return new Response(null, { headers: corsHeaders });
     }
 
+    // --- FP Permission Gate ---
+    if (pathname.startsWith('/api/fp/') && !pathname.startsWith('/api/fp/check-access')) {
+      const fpApiEmail = getEmailFromJWT(request);
+      if (fpApiEmail && !isSuperAdmin(fpApiEmail)) {
+        const fpApiPerm = await env.DB.prepare('SELECT permission FROM app_permissions WHERE email = ? AND app_id = ?').bind(fpApiEmail, 'fp').first();
+        if (!fpApiPerm || fpApiPerm.permission === 'none') {
+          return new Response(JSON.stringify({ error: 'Access denied', app: 'fp' }), { status: 403, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+        }
+      }
+    }
+
+    // --- FP Access Check Endpoint ---
+    if (pathname === '/api/fp/check-access' && method === 'GET') {
+      const checkEmail = getEmailFromJWT(request);
+      if (!checkEmail) {
+        return new Response(JSON.stringify({ allowed: false, reason: 'not_authenticated' }), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+      }
+      if (isSuperAdmin(checkEmail)) {
+        return new Response(JSON.stringify({ allowed: true, email: checkEmail, role: 'super_admin' }), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+      }
+      const checkPerm = await env.DB.prepare('SELECT permission FROM app_permissions WHERE email = ? AND app_id = ?').bind(checkEmail, 'fp').first();
+      const allowed = checkPerm && checkPerm.permission !== 'none';
+      return new Response(JSON.stringify({ allowed, email: checkEmail }), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+    }
+
     // --- Pens API ---
     if (pathname === '/api/fp/pens' && method === 'GET') {
       const { results } = await env.DB.prepare('SELECT * FROM pens ORDER BY brand, model').all();
@@ -249,11 +274,582 @@ export default {
       return new Response(md, { headers: { 'Content-Type': 'text/markdown; charset=utf-8', ...corsHeaders } });
     }
 
+    // ===== Admin API Routes =====
+
+    // Helper: extract email from CF Access JWT
+    function getEmailFromJWT(request) {
+      try {
+        const cookie = request.headers.get('Cookie') || '';
+        const match = cookie.match(/CF_Authorization=([^;]+)/);
+        if (!match) return null;
+        const payload = JSON.parse(atob(match[1].split('.')[1]));
+        return payload.email || null;
+      } catch (e) { return null; }
+    }
+
+    // Helper: check if email is super admin
+    function isSuperAdmin(email) {
+      return email === 'kevin.ully2000@gmail.com';
+    }
+
+    // Helper: check if email is admin (super_admin or admin role)
+    async function isAdmin(email, env) {
+      if (isSuperAdmin(email)) return true;
+      const row = await env.DB.prepare('SELECT role FROM users WHERE email = ?').bind(email).first();
+      return row && (row.role === 'admin' || row.role === 'super_admin');
+    }
+
+    // GET /api/admin/users — list all users with their app permissions
+    if (pathname === '/api/admin/users' && method === 'GET') {
+      const callerEmail = getEmailFromJWT(request);
+      if (!callerEmail || !(await isAdmin(callerEmail, env))) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 403, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+      }
+      const { results: users } = await env.DB.prepare('SELECT * FROM users ORDER BY role, email').all();
+      const { results: perms } = await env.DB.prepare('SELECT * FROM app_permissions ORDER BY email, app_id').all();
+      const permsByEmail = {};
+      for (const p of perms) {
+        if (!permsByEmail[p.email]) permsByEmail[p.email] = {};
+        permsByEmail[p.email][p.app_id] = p.permission;
+      }
+      const enriched = users.map(u => ({ ...u, apps: permsByEmail[u.email] || {} }));
+      return new Response(JSON.stringify(enriched), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+    }
+
+    // POST /api/admin/users — add a new user (CF Access + D1)
+    if (pathname === '/api/admin/users' && method === 'POST') {
+      const callerEmail = getEmailFromJWT(request);
+      if (!callerEmail || !(await isAdmin(callerEmail, env))) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 403, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+      }
+      const body = await request.json();
+      const { email, role, apps } = body;
+      if (!email || !email.includes('@')) {
+        return new Response(JSON.stringify({ error: 'Invalid email' }), { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+      }
+      // Only super admin can create admins
+      if (role === 'admin' && !isSuperAdmin(callerEmail)) {
+        return new Response(JSON.stringify({ error: 'Only super admin can promote to admin' }), { status: 403, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+      }
+
+      // Add to CF Access policy
+      const cfToken = env.CLOUDFLARE_ACCESS_TOKEN;
+      if (cfToken) {
+        try {
+          const acctId = '720188182d247df529ed121b3ddb59e6';
+          const policyId = 'ad315038-7242-448e-9d7c-29ddcf812e02';
+          const appId = 'dbf6d196-faeb-4403-9acc-92469c67ef64';
+          const policyRes = await fetch(`https://api.cloudflare.com/client/v4/accounts/${acctId}/access/apps/${appId}/policies/${policyId}`, {
+            headers: { 'Authorization': `Bearer ${cfToken}`, 'Content-Type': 'application/json' }
+          });
+          const policyData = await policyRes.json();
+          if (policyData.success) {
+            const policy = policyData.result;
+            const emails = policy.include.filter(r => r.email).map(r => r.email.email);
+            if (!emails.includes(email)) {
+              policy.include.push({ email: { email } });
+              const { id, created_at, updated_at, ...updatePayload } = policy;
+              await fetch(`https://api.cloudflare.com/client/v4/accounts/${acctId}/access/apps/${appId}/policies/${policyId}`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${cfToken}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatePayload)
+              });
+            }
+          }
+        } catch (e) { console.error('CF Access error:', e); }
+      }
+
+      // Add to D1
+      await env.DB.prepare('INSERT OR REPLACE INTO users (email, role, updated_at) VALUES (?, ?, datetime(\'now\'))').bind(email, role || 'user').run();
+
+      // Set app permissions
+      if (apps && typeof apps === 'object') {
+        for (const [appId, perm] of Object.entries(apps)) {
+          await env.DB.prepare('INSERT OR REPLACE INTO app_permissions (email, app_id, permission, updated_at) VALUES (?, ?, ?, datetime(\'now\'))').bind(email, appId, perm).run();
+        }
+      }
+
+      return new Response(JSON.stringify({ success: true, email }), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+    }
+
+    // PUT /api/admin/users/:email — update role or app permissions
+    if (pathname.startsWith('/api/admin/users/') && method === 'PUT') {
+      const callerEmail = getEmailFromJWT(request);
+      if (!callerEmail || !(await isAdmin(callerEmail, env))) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 403, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+      }
+      const targetEmail = decodeURIComponent(pathname.replace('/api/admin/users/', ''));
+      if (isSuperAdmin(targetEmail) && !isSuperAdmin(callerEmail)) {
+        return new Response(JSON.stringify({ error: 'Cannot modify super admin' }), { status: 403, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+      }
+      const body = await request.json();
+      if (body.role !== undefined) {
+        if (body.role === 'admin' && !isSuperAdmin(callerEmail)) {
+          return new Response(JSON.stringify({ error: 'Only super admin can promote to admin' }), { status: 403, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+        }
+        await env.DB.prepare('UPDATE users SET role = ?, updated_at = datetime(\'now\') WHERE email = ?').bind(body.role, targetEmail).run();
+      }
+      if (body.apps && typeof body.apps === 'object') {
+        for (const [appId, perm] of Object.entries(body.apps)) {
+          await env.DB.prepare('INSERT OR REPLACE INTO app_permissions (email, app_id, permission, updated_at) VALUES (?, ?, ?, datetime(\'now\'))').bind(targetEmail, appId, perm).run();
+        }
+      }
+      return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+    }
+
+    // DELETE /api/admin/users/:email — remove user (CF Access + D1)
+    if (pathname.startsWith('/api/admin/users/') && method === 'DELETE') {
+      const callerEmail = getEmailFromJWT(request);
+      if (!callerEmail || !isSuperAdmin(callerEmail)) {
+        return new Response(JSON.stringify({ error: 'Only super admin can remove users' }), { status: 403, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+      }
+      const targetEmail = decodeURIComponent(pathname.replace('/api/admin/users/', ''));
+      if (isSuperAdmin(targetEmail)) {
+        return new Response(JSON.stringify({ error: 'Cannot remove super admin' }), { status: 403, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+      }
+
+      // Remove from CF Access policy
+      const cfToken = env.CLOUDFLARE_ACCESS_TOKEN;
+      if (cfToken) {
+        try {
+          const acctId = '720188182d247df529ed121b3ddb59e6';
+          const policyId = 'ad315038-7242-448e-9d7c-29ddcf812e02';
+          const appId = 'dbf6d196-faeb-4403-9acc-92469c67ef64';
+          const policyRes = await fetch(`https://api.cloudflare.com/client/v4/accounts/${acctId}/access/apps/${appId}/policies/${policyId}`, {
+            headers: { 'Authorization': `Bearer ${cfToken}`, 'Content-Type': 'application/json' }
+          });
+          const policyData = await policyRes.json();
+          if (policyData.success) {
+            const policy = policyData.result;
+            policy.include = policy.include.filter(r => !(r.email && r.email.email === targetEmail));
+            const { id, created_at, updated_at, ...updatePayload } = policy;
+            await fetch(`https://api.cloudflare.com/client/v4/accounts/${acctId}/access/apps/${appId}/policies/${policyId}`, {
+              method: 'PUT',
+              headers: { 'Authorization': `Bearer ${cfToken}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify(updatePayload)
+            });
+          }
+        } catch (e) { console.error('CF Access removal error:', e); }
+      }
+
+      // Remove from D1
+      await env.DB.prepare('DELETE FROM app_permissions WHERE email = ?').bind(targetEmail).run();
+      await env.DB.prepare('DELETE FROM users WHERE email = ?').bind(targetEmail).run();
+
+      return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+    }
+
+    // GET /api/admin/check — check app permission for a user
+    if (pathname === '/api/admin/check' && method === 'GET') {
+      const checkEmail = url.searchParams.get('email');
+      const checkApp = url.searchParams.get('app');
+      if (!checkEmail || !checkApp) {
+        return new Response(JSON.stringify({ error: 'email and app params required' }), { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+      }
+      // Super admin always has access
+      if (isSuperAdmin(checkEmail)) {
+        return new Response(JSON.stringify({ access: true, permission: 'admin', role: 'super_admin' }), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+      }
+      const user = await env.DB.prepare('SELECT role FROM users WHERE email = ?').bind(checkEmail).first();
+      if (!user) {
+        return new Response(JSON.stringify({ access: false, permission: 'none', role: null }), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+      }
+      const perm = await env.DB.prepare('SELECT permission FROM app_permissions WHERE email = ? AND app_id = ?').bind(checkEmail, checkApp).first();
+      const permission = perm ? perm.permission : 'none';
+      return new Response(JSON.stringify({ access: permission !== 'none', permission, role: user.role }), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+    }
+
+    // ===== End Admin API Routes =====
+
     // ===== End D1 API Routes =====
 
     let responseHTML;
 
-    if (pathname.startsWith('/sandbox/fountain-pen')) {
+    if (pathname.startsWith('/admin')) {
+      // Check admin access
+      const adminEmail = getEmailFromJWT(request);
+      const adminAllowed = adminEmail && (await isAdmin(adminEmail, env));
+      responseHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Console — MedicalPKM</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+  .nav { background: #1e293b; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
+  .nav-left { display: flex; align-items: center; gap: 8px; font-weight: 700; color: #f59e0b; font-size: 16px; }
+  .nav-left span { color: #94a3b8; font-weight: 400; font-size: 14px; }
+  .nav-right { display: flex; gap: 16px; font-size: 13px; }
+  .nav-right a { color: #94a3b8; text-decoration: none; }
+  .nav-right a:hover { color: #f59e0b; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+  h1 { font-size: 28px; color: #f8fafc; margin-bottom: 4px; }
+  .subtitle { color: #94a3b8; font-size: 14px; margin-bottom: 24px; }
+  .tabs { display: flex; gap: 0; margin-bottom: 24px; border-bottom: 2px solid #334155; }
+  .tab { padding: 10px 20px; font-size: 14px; font-weight: 500; color: #94a3b8; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+  .tab:hover { color: #e2e8f0; }
+  .tab.active { color: #f59e0b; border-bottom-color: #f59e0b; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+  .card-title { font-size: 16px; font-weight: 600; margin-bottom: 12px; color: #f8fafc; }
+  .add-form { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .add-form input, .add-form select { padding: 10px 14px; background: #0f172a; border: 1px solid #475569; border-radius: 6px; color: #e2e8f0; font-size: 14px; }
+  .add-form input { flex: 1; min-width: 200px; }
+  .add-form input::placeholder { color: #64748b; }
+  .btn { padding: 10px 20px; border: none; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+  .btn-primary { background: #f59e0b; color: #0f172a; }
+  .btn-primary:hover { background: #d97706; }
+  .btn-danger { background: transparent; color: #ef4444; border: 1px solid #ef4444; padding: 4px 12px; font-size: 12px; cursor: pointer; }
+  .btn-danger:hover { background: #ef4444; color: white; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+  .stat { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 16px; text-align: center; }
+  .stat-value { font-size: 28px; font-weight: 700; color: #f59e0b; }
+  .stat-label { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+  .user-row { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #0f172a; gap: 8px; flex-wrap: wrap; }
+  .user-row:last-child { border-bottom: none; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; flex-shrink: 0; }
+  .avatar.sa { background: #f59e0b; color: #0f172a; }
+  .avatar.ad { background: #8b5cf6; color: white; }
+  .avatar.us { background: #3b82f6; color: white; }
+  .user-info { flex: 1; min-width: 200px; }
+  .user-email { font-size: 14px; color: #e2e8f0; }
+  .user-meta { font-size: 12px; color: #64748b; margin-top: 2px; }
+  .role-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-left: 8px; }
+  .role-badge.super_admin { background: #f59e0b22; color: #f59e0b; border: 1px solid #f59e0b44; }
+  .role-badge.admin { background: #8b5cf622; color: #a78bfa; border: 1px solid #8b5cf644; }
+  .role-badge.user { background: #3b82f622; color: #60a5fa; border: 1px solid #3b82f644; }
+  .app-chips { display: flex; gap: 4px; flex-wrap: wrap; margin-right: 8px; }
+  .app-chip { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; cursor: pointer; user-select: none; transition: all 0.15s; }
+  .app-chip:hover { opacity: 0.8; }
+  .app-chip.kol { background: #3b82f622; color: #60a5fa; }
+  .app-chip.fp { background: #f59e0b22; color: #fbbf24; }
+  .app-chip.coc { background: #10b98122; color: #34d399; }
+  .app-chip.inactive { background: #33333366; color: #666; cursor: pointer; }
+  .app-chip.inactive:hover { color: #999; background: #33333399; }
+  .perm-select { background: #0f172a; border: 1px solid #475569; border-radius: 4px; color: #e2e8f0; padding: 4px 8px; font-size: 12px; }
+  .app-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+  .app-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 20px; cursor: pointer; transition: border-color 0.2s; }
+  .app-card:hover, .app-card.selected { border-color: #f59e0b; }
+  .app-icon { font-size: 24px; margin-bottom: 8px; }
+  .app-name { font-size: 16px; font-weight: 600; color: #f8fafc; }
+  .app-desc { font-size: 12px; color: #64748b; margin-top: 4px; }
+  .app-users-count { font-size: 13px; color: #f59e0b; margin-top: 8px; }
+  .matrix { width: 100%; border-collapse: collapse; }
+  .matrix th { text-align: left; padding: 10px 12px; font-size: 12px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #334155; }
+  .matrix td { padding: 10px 12px; font-size: 14px; border-bottom: 1px solid #1e293b; }
+  .toast { position: fixed; top: 20px; right: 20px; padding: 12px 20px; border-radius: 8px; font-size: 14px; z-index: 999; display: none; }
+  .toast.success { background: #166534; color: #bbf7d0; }
+  .toast.error { background: #991b1b; color: #fecaca; }
+  .denied { text-align: center; padding: 80px 20px; }
+  .denied h2 { font-size: 24px; color: #ef4444; margin-bottom: 12px; }
+  .denied p { color: #94a3b8; font-size: 14px; }
+  .loading { text-align: center; padding: 40px; color: #94a3b8; }
+  @media (max-width: 768px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .app-grid { grid-template-columns: 1fr; }
+    .add-form { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<div class="nav">
+  <div class="nav-left">
+    <a href="/" style="color:#f59e0b;text-decoration:none;">&#9670; MedicalPKM</a>
+    <span>/ Admin</span>
+  </div>
+  <div class="nav-right">
+    <a href="https://kol.medicalpkm.com">KOL Briefs</a>
+    <a href="/apps/shared/fountain-pen/">Fountain Pen</a>
+    <a href="https://medicalpkm.cloudflareaccess.com/cdn-cgi/access/logout" style="color:#ef4444;">Log Out</a>
+  </div>
+</div>
+
+${!adminAllowed ? `
+<div class="container">
+  <div class="denied">
+    <h2>Access Denied</h2>
+    <p>You're signed in as <strong>${adminEmail || 'unknown'}</strong>.</p>
+    <p>This account doesn't have admin privileges. Contact your administrator or sign in with a different account.</p>
+    <p style="margin-top:16px;">
+      <a href="https://medicalpkm.cloudflareaccess.com/cdn-cgi/access/logout" style="color:#f59e0b;margin-right:16px;">Sign Out & Switch Account</a>
+      <a href="/" style="color:#94a3b8;">Back to Portal</a>
+    </p>
+  </div>
+</div>
+` : `
+<div class="container">
+  <h1>Admin Console</h1>
+  <p class="subtitle">Manage users, roles, and app-level permissions across the MedicalPKM ecosystem.</p>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-value" id="stat-users">-</div><div class="stat-label">TOTAL USERS</div></div>
+    <div class="stat"><div class="stat-value" id="stat-admins">-</div><div class="stat-label">ADMINS</div></div>
+    <div class="stat"><div class="stat-value" id="stat-apps">3</div><div class="stat-label">APPS</div></div>
+    <div class="stat"><div class="stat-value" id="stat-active">-</div><div class="stat-label">ACTIVE USERS</div></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('users')">Users & Roles</div>
+    <div class="tab" onclick="switchTab('apps')">App Permissions</div>
+  </div>
+
+  <!-- Users Tab -->
+  <div id="tab-users" class="tab-content active">
+    <div class="card">
+      <div class="card-title">Add a New User</div>
+      <div class="add-form">
+        <input type="email" id="new-email" placeholder="colleague@company.com" />
+        <select id="new-role">
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+        <div style="display:flex;align-items:center;gap:12px;background:#0f172a;border:1px solid #475569;border-radius:6px;padding:8px 14px;">
+          <span style="font-size:12px;color:#64748b;">Apps:</span>
+          <label style="font-size:12px;color:#94a3b8;display:flex;align-items:center;gap:4px;cursor:pointer;">
+            <input type="checkbox" id="app-kol" checked> KOL
+          </label>
+          <label style="font-size:12px;color:#94a3b8;display:flex;align-items:center;gap:4px;cursor:pointer;">
+            <input type="checkbox" id="app-fp"> FP
+          </label>
+          <label style="font-size:12px;color:#94a3b8;display:flex;align-items:center;gap:4px;cursor:pointer;">
+            <input type="checkbox" id="app-coc"> Cthulhu
+          </label>
+        </div>
+        <button class="btn btn-primary" onclick="addUser()">Add</button>
+      </div>
+      <div style="font-size:12px;color:#64748b;margin-top:4px;">New users receive access via Google OAuth or One-Time PIN.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">All Users (<span id="user-count">0</span>)</div>
+      <div id="user-list"><div class="loading">Loading users...</div></div>
+    </div>
+  </div>
+
+  <!-- App Permissions Tab -->
+  <div id="tab-apps" class="tab-content">
+    <div class="app-grid">
+      <div class="app-card selected" onclick="selectApp('kol')">
+        <div class="app-icon">&#128202;</div>
+        <div class="app-name">KOL Brief Generator</div>
+        <div class="app-desc">Generate evidence-grounded KOL briefs</div>
+        <div class="app-users-count" id="kol-count">-</div>
+      </div>
+      <div class="app-card" onclick="selectApp('fp')">
+        <div class="app-icon">&#9997;&#65039;</div>
+        <div class="app-name">Fountain Pen Companion</div>
+        <div class="app-desc">Track your pen & ink collection</div>
+        <div class="app-users-count" id="fp-count">-</div>
+      </div>
+      <div class="app-card" onclick="selectApp('coc')">
+        <div class="app-icon">&#128025;</div>
+        <div class="app-name">Cthulhu Investigator</div>
+        <div class="app-desc">Call of Cthulhu RPG adventures</div>
+        <div class="app-users-count" id="coc-count">-</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title" id="app-perm-title">KOL Brief Generator &mdash; User Access</div>
+      <div id="app-perm-list"><div class="loading">Loading...</div></div>
+    </div>
+  </div>
+</div>
+`}
+
+<div class="toast" id="toast"></div>
+
+<script>
+var users = [];
+var currentApp = 'kol';
+var SUPER_ADMIN = 'kevin.ully2000@gmail.com';
+var APP_NAMES = { kol: 'KOL Brief Generator', fp: 'Fountain Pen Companion', coc: 'Cthulhu Investigator' };
+
+function showToast(msg, type) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type;
+  t.style.display = 'block';
+  setTimeout(function() { t.style.display = 'none'; }, 3000);
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+async function loadUsers() {
+  try {
+    var res = await fetch('/api/admin/users');
+    if (!res.ok) throw new Error('Failed to load');
+    users = await res.json();
+    renderUsers();
+    renderAppPerms();
+    updateStats();
+  } catch (e) {
+    document.getElementById('user-list').innerHTML = '<div style="color:#ef4444;padding:12px;">Error loading users: ' + e.message + '</div>';
+  }
+}
+
+function updateStats() {
+  document.getElementById('stat-users').textContent = users.length;
+  document.getElementById('stat-admins').textContent = users.filter(function(u) { return u.role === 'admin' || u.role === 'super_admin'; }).length;
+  document.getElementById('stat-active').textContent = users.filter(function(u) { return Object.keys(u.apps || {}).some(function(k) { return u.apps[k] !== 'none'; }); }).length;
+  document.getElementById('user-count').textContent = users.length;
+
+  ['kol','fp','coc'].forEach(function(app) {
+    var count = users.filter(function(u) { return u.role === 'super_admin' || (u.apps[app] && u.apps[app] !== 'none'); }).length;
+    var admins = users.filter(function(u) { return u.role === 'super_admin' || u.apps[app] === 'admin'; }).length;
+    var el = document.getElementById(app + '-count');
+    if (el) el.textContent = count + ' users \\u00b7 ' + admins + ' admins';
+  });
+}
+
+function avatarClass(role) { return role === 'super_admin' ? 'sa' : role === 'admin' ? 'ad' : 'us'; }
+
+function renderUsers() {
+  var html = '';
+  users.forEach(function(u) {
+    var initial = u.email.charAt(0).toUpperCase();
+    var isSA = u.role === 'super_admin';
+    var chips = '';
+    if (isSA) {
+      chips = '<span class="app-chip kol">All Apps</span>';
+    } else {
+      ['kol','fp','coc'].forEach(function(app) {
+        var hasAccess = u.apps[app] && u.apps[app] !== 'none';
+        var label = app === 'kol' ? 'KOL' : app === 'fp' ? 'FP' : 'Cthulhu';
+        var cls = hasAccess ? ('app-chip ' + app) : 'app-chip inactive';
+        chips += '<span class="' + cls + '" onclick="toggleAppAccess(\\'' + u.email + '\\', \\'' + app + '\\', ' + !hasAccess + ')" title="Click to ' + (hasAccess ? 'revoke' : 'grant') + ' ' + label + ' access">' + label + '</span>';
+      });
+    }
+    html += '<div class="user-row">';
+    html += '<div class="avatar ' + avatarClass(u.role) + '">' + initial + '</div>';
+    html += '<div class="user-info"><div class="user-email">' + u.email + ' <span class="role-badge ' + u.role + '">' + (isSA ? 'Super Admin' : u.role === 'admin' ? 'Admin' : 'User') + '</span></div>';
+    html += '<div class="user-meta">Added ' + (u.created_at ? new Date(u.created_at).toLocaleDateString() : 'N/A') + '</div></div>';
+    html += '<div class="app-chips">' + chips + '</div>';
+    if (!isSA) {
+      html += '<select class="perm-select" onchange="changeRole(\\'' + u.email + '\\', this.value)">';
+      html += '<option value="user"' + (u.role === 'user' ? ' selected' : '') + '>User</option>';
+      html += '<option value="admin"' + (u.role === 'admin' ? ' selected' : '') + '>Admin</option>';
+      html += '</select>';
+      html += ' <button class="btn btn-danger" onclick="removeUser(\\'' + u.email + '\\')">Remove</button>';
+    }
+    html += '</div>';
+  });
+  document.getElementById('user-list').innerHTML = html || '<div class="loading">No users found</div>';
+}
+
+function selectApp(app) {
+  currentApp = app;
+  document.querySelectorAll('.app-card').forEach(function(c) { c.classList.remove('selected'); });
+  event.currentTarget.classList.add('selected');
+  document.getElementById('app-perm-title').innerHTML = APP_NAMES[app] + ' &mdash; User Access';
+  renderAppPerms();
+}
+
+function renderAppPerms() {
+  var html = '<table class="matrix"><thead><tr><th>User</th><th>Global Role</th><th>App Permission</th><th></th></tr></thead><tbody>';
+  users.forEach(function(u) {
+    var initial = u.email.charAt(0).toUpperCase();
+    var isSA = u.role === 'super_admin';
+    var perm = isSA ? 'admin' : (u.apps[currentApp] || 'none');
+    html += '<tr>';
+    html += '<td><span class="avatar ' + avatarClass(u.role) + '" style="display:inline-flex;width:24px;height:24px;font-size:11px;vertical-align:middle;margin-right:6px;">' + initial + '</span> ' + u.email + '</td>';
+    html += '<td><span class="role-badge ' + u.role + '">' + (isSA ? 'Super Admin' : u.role === 'admin' ? 'Admin' : 'User') + '</span></td>';
+    if (isSA) {
+      html += '<td>Full Access</td><td></td>';
+    } else {
+      html += '<td><select class="perm-select" onchange="changeAppPerm(\\'' + u.email + '\\', \\'' + currentApp + '\\', this.value)">';
+      html += '<option value="admin"' + (perm === 'admin' ? ' selected' : '') + '>Admin</option>';
+      html += '<option value="user"' + (perm === 'user' ? ' selected' : '') + '>User</option>';
+      html += '<option value="none"' + (perm === 'none' ? ' selected' : '') + '>No Access</option>';
+      html += '</select></td>';
+      html += '<td>' + (perm !== 'none' ? '<button class="btn btn-danger" onclick="changeAppPerm(\\'' + u.email + '\\', \\'' + currentApp + '\\', \\'none\\')">Revoke</button>' : '') + '</td>';
+    }
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('app-perm-list').innerHTML = html;
+}
+
+async function addUser() {
+  var email = document.getElementById('new-email').value.trim();
+  var role = document.getElementById('new-role').value;
+  if (!email || !email.includes('@')) { showToast('Enter a valid email', 'error'); return; }
+  var apps = {};
+  if (document.getElementById('app-kol').checked) apps.kol = role === 'admin' ? 'admin' : 'user';
+  if (document.getElementById('app-fp').checked) apps.fp = role === 'admin' ? 'admin' : 'user';
+  if (document.getElementById('app-coc').checked) apps.coc = role === 'admin' ? 'admin' : 'user';
+  try {
+    var res = await fetch('/api/admin/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, role: role, apps: apps })
+    });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    document.getElementById('new-email').value = '';
+    showToast('Added ' + email, 'success');
+    loadUsers();
+  } catch (e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+async function removeUser(email) {
+  if (!confirm('Remove ' + email + '? This revokes all access.')) return;
+  try {
+    var res = await fetch('/api/admin/users/' + encodeURIComponent(email), { method: 'DELETE' });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    showToast('Removed ' + email, 'success');
+    loadUsers();
+  } catch (e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+async function changeRole(email, newRole) {
+  try {
+    var res = await fetch('/api/admin/users/' + encodeURIComponent(email), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: newRole })
+    });
+    if (!res.ok) { var d = await res.json(); throw new Error(d.error || 'Failed'); }
+    showToast('Updated ' + email + ' to ' + newRole, 'success');
+    loadUsers();
+  } catch (e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+async function changeAppPerm(email, app, perm) {
+  try {
+    var apps = {};
+    apps[app] = perm;
+    var res = await fetch('/api/admin/users/' + encodeURIComponent(email), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apps: apps })
+    });
+    if (!res.ok) { var d = await res.json(); throw new Error(d.error || 'Failed'); }
+    showToast('Updated ' + email + ' ' + app + ' access', 'success');
+    loadUsers();
+  } catch (e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+async function toggleAppAccess(email, app, grant) {
+  var label = app === 'kol' ? 'KOL' : app === 'fp' ? 'FP' : 'Cthulhu';
+  var action = grant ? 'Grant' : 'Revoke';
+  if (!confirm(action + ' ' + label + ' access for ' + email + '?')) return;
+  changeAppPerm(email, app, grant ? 'user' : 'none');
+}
+
+if (document.getElementById('user-list')) loadUsers();
+</script>
+</body>
+</html>`;
+    } else     if (pathname.startsWith('/sandbox/fountain-pen')) {
       responseHTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -3439,6 +4035,29 @@ export default {
 </html>
 `;
     } else     if (pathname.startsWith('/apps/private')) {
+      // Soft block: check Cthulhu app permission
+      const cocEmail = getEmailFromJWT(request);
+      let cocAllowed = true;
+      if (cocEmail) {
+        if (!isSuperAdmin(cocEmail)) {
+          const cocPerm = await env.DB.prepare('SELECT permission FROM app_permissions WHERE email = ? AND app_id = ?').bind(cocEmail, 'coc').first();
+          cocAllowed = cocPerm && cocPerm.permission !== 'none';
+        }
+      }
+      if (!cocAllowed) {
+        responseHTML = `<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Access Restricted — MedicalPKM</title>
+<style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#1a0a2e;color:#e2e8f0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;}
+.icon{font-size:64px;margin-bottom:24px;}.title{font-size:24px;font-weight:700;color:#f8fafc;margin-bottom:8px;}.msg{color:#94a3b8;font-size:14px;max-width:400px;line-height:1.6;margin-bottom:24px;}
+a{color:#a78bfa;text-decoration:none;}a:hover{text-decoration:underline;}</style>
+</head><body>
+<div class="icon">&#128025;</div>
+<div class="title">Cthulhu Investigator</div>
+<p class="msg">You don't have access to this app. Contact your administrator to request access.</p>
+<a href="/">Back to Portal</a>
+</body></html>`;
+      } else {
       responseHTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -3724,7 +4343,31 @@ export default {
 </body>
 </html>
 `;
+      }
     } else     if (pathname.startsWith('/apps/shared/fountain-pen')) {
+      // Soft block: check FP app permission
+      const fpEmail = getEmailFromJWT(request);
+      let fpAllowed = true;
+      if (fpEmail) {
+        if (!isSuperAdmin(fpEmail)) {
+          const fpPerm = await env.DB.prepare('SELECT permission FROM app_permissions WHERE email = ? AND app_id = ?').bind(fpEmail, 'fp').first();
+          fpAllowed = fpPerm && fpPerm.permission !== 'none';
+        }
+      }
+      if (!fpAllowed) {
+        responseHTML = `<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Access Restricted — MedicalPKM</title>
+<style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;}
+.icon{font-size:64px;margin-bottom:24px;}.title{font-size:24px;font-weight:700;color:#f8fafc;margin-bottom:8px;}.msg{color:#94a3b8;font-size:14px;max-width:400px;line-height:1.6;margin-bottom:24px;}
+a{color:#f59e0b;text-decoration:none;}a:hover{text-decoration:underline;}</style>
+</head><body>
+<div class="icon">&#9997;&#65039;</div>
+<div class="title">Fountain Pen Companion</div>
+<p class="msg">You don't have access to this app. Contact your administrator to request access.</p>
+<a href="/">Back to Portal</a>
+</body></html>`;
+      } else {
       responseHTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6622,14 +7265,27 @@ export default {
             }
         };
 
-        // Initialize app
-        document.addEventListener('DOMContentLoaded', () => {
+        // Initialize app with permission check
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                var accessRes = await fetch('/api/fp/check-access');
+                var accessData = await accessRes.json();
+                if (!accessData.allowed) {
+                    document.getElementById('app').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:40px;"><div>' +
+                        '<div style="font-size:64px;margin-bottom:24px;">&#9997;&#65039;</div>' +
+                        '<h2 style="color:#f8fafc;margin-bottom:8px;">Access Revoked</h2>' +
+                        '<p style="color:#94a3b8;max-width:400px;line-height:1.6;margin-bottom:24px;">Your access to Fountain Pen Companion has been removed. Contact your administrator to restore access.</p>' +
+                        '<a href="/" style="color:#f59e0b;text-decoration:none;">Back to Portal</a></div></div>';
+                    return;
+                }
+            } catch(e) { /* allow offline/fallback */ }
             app.init();
         });
     </script>
 </body>
 </html>
 `;
+      }
     } else {
       responseHTML = `<!DOCTYPE html>
 <html lang="en">
