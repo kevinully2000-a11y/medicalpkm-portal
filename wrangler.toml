@@ -13,3 +13,8 @@ custom_domain = true
 pattern = "www.medicalpkm.com"
 zone_name = "medicalpkm.com"
 custom_domain = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "medicalpkm-fp"
+database_id = "827127ef-961f-40b2-96c0-80d23d62ded7"

@@ -4,9 +4,252 @@
 // Total HTML: 248,771 bytes
 
 export default {
-  fetch(request) {
+  async fetch(request, env) {
     const url = new URL(request.url);
     const pathname = url.pathname;
+    const method = request.method;
+
+    // ===== D1 API Routes (Fountain Pen) =====
+    const corsHeaders = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    };
+
+    if (method === 'OPTIONS' && pathname.startsWith('/api/')) {
+      return new Response(null, { headers: corsHeaders });
+    }
+
+    // --- Pens API ---
+    if (pathname === '/api/fp/pens' && method === 'GET') {
+      const { results } = await env.DB.prepare('SELECT * FROM pens ORDER BY brand, model').all();
+      return new Response(JSON.stringify(results), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+    }
+    if (pathname === '/api/fp/pens' && method === 'POST') {
+      const pen = await request.json();
+      await env.DB.prepare(
+        `INSERT INTO pens (id, brand, line, model, nib_size, nib_material, nib_grind, filling, price, currency, status, purchase_date, store, notes, url, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(pen.id, pen.brand, pen.line || '', pen.model, pen.nibSize || pen.nib_size || '', pen.nibMaterial || pen.nib_material || '', pen.nibGrind || pen.nib_grind || '', pen.filling || '', pen.price || null, pen.currency || 'USD', pen.status || 'In Collection', pen.purchaseDate || pen.purchase_date || null, pen.store || pen.url || '', pen.notes || '', pen.url || '', pen.createdAt || new Date().toISOString(), new Date().toISOString()).run();
+      return new Response(JSON.stringify({ success: true, id: pen.id }), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+    }
+    if (pathname.startsWith('/api/fp/pens/') && method === 'PUT') {
+      const id = pathname.split('/').pop();
+      const pen = await request.json();
+      await env.DB.prepare(
+        `UPDATE pens SET brand=?, line=?, model=?, nib_size=?, nib_material=?, nib_grind=?, filling=?, price=?, currency=?, status=?, purchase_date=?, store=?, notes=?, url=?, updated_at=? WHERE id=?`
+      ).bind(pen.brand, pen.line || '', pen.model, pen.nibSize || pen.nib_size || '', pen.nibMaterial || pen.nib_material || '', pen.nibGrind || pen.nib_grind || '', pen.filling || '', pen.price || null, pen.currency || 'USD', pen.status || 'In Collection', pen.purchaseDate || pen.purchase_date || null, pen.store || pen.url || '', pen.notes || '', pen.url || '', new Date().toISOString(), id).run();
+      return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+    }
+    if (pathname.startsWith('/api/fp/pens/') && method === 'DELETE') {
+      const id = pathname.split('/').pop();
+      await env.DB.prepare('DELETE FROM pens WHERE id=?').bind(id).run();
+      return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+    }
+
+    // --- Inks API ---
+    if (pathname === '/api/fp/inks' && method === 'GET') {
+      const { results } = await env.DB.prepare('SELECT * FROM inks ORDER BY brand, name').all();
+      return new Response(JSON.stringify(results), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+    }
+    if (pathname === '/api/fp/inks' && method === 'POST') {
+      const ink = await request.json();
+      await env.DB.prepare(
+        `INSERT INTO inks (id, brand, name, color, volume, price, currency, notes, url, properties, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(ink.id, ink.brand, ink.name, ink.color || '', ink.volume || '', ink.price || null, ink.currency || 'USD', ink.notes || '', ink.url || '', JSON.stringify(ink.properties || []), ink.createdAt || new Date().toISOString(), new Date().toISOString()).run();
+      return new Response(JSON.stringify({ success: true, id: ink.id }), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+    }
+    if (pathname.startsWith('/api/fp/inks/') && method === 'PUT') {
+      const id = pathname.split('/').pop();
+      const ink = await request.json();
+      await env.DB.prepare(
+        `UPDATE inks SET brand=?, name=?, color=?, volume=?, price=?, currency=?, notes=?, url=?, properties=?, updated_at=? WHERE id=?`
+      ).bind(ink.brand, ink.name, ink.color || '', ink.volume || '', ink.price || null, ink.currency || 'USD', ink.notes || '', ink.url || '', JSON.stringify(ink.properties || []), new Date().toISOString(), id).run();
+      return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+    }
+    if (pathname.startsWith('/api/fp/inks/') && method === 'DELETE') {
+      const id = pathname.split('/').pop();
+      await env.DB.prepare('DELETE FROM inks WHERE id=?').bind(id).run();
+      return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+    }
+
+    // --- Pairings API ---
+    if (pathname === '/api/fp/pairings' && method === 'GET') {
+      const { results } = await env.DB.prepare('SELECT * FROM pairings ORDER BY is_active DESC, created_at DESC').all();
+      return new Response(JSON.stringify(results), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+    }
+    if (pathname === '/api/fp/pairings' && method === 'POST') {
+      const p = await request.json();
+      await env.DB.prepare(
+        `INSERT INTO pairings (id, pen_id, ink_id, rating, verdict, notes, is_active, paired_date, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(p.id, p.pen_id || p.penId, p.ink_id || p.inkId, p.rating || null, p.verdict || '', p.notes || '', p.is_active || p.isActive || 0, p.paired_date || p.pairedDate || null, p.createdAt || new Date().toISOString(), new Date().toISOString()).run();
+      return new Response(JSON.stringify({ success: true, id: p.id }), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+    }
+    if (pathname.startsWith('/api/fp/pairings/') && method === 'DELETE') {
+      const id = pathname.split('/').pop();
+      await env.DB.prepare('DELETE FROM pairings WHERE id=?').bind(id).run();
+      return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+    }
+
+    // --- Dropdowns API ---
+    if (pathname === '/api/fp/dropdowns' && method === 'GET') {
+      const { results } = await env.DB.prepare('SELECT * FROM dropdowns ORDER BY category, sort_order').all();
+      const grouped = {};
+      for (const row of results) {
+        if (!grouped[row.category]) grouped[row.category] = [];
+        grouped[row.category].push(row.value);
+      }
+      return new Response(JSON.stringify(grouped), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+    }
+
+    // --- Bulk Sync (one-time migration from localStorage) ---
+    if (pathname === '/api/fp/sync' && method === 'POST') {
+      const data = await request.json();
+      const results = { pens: 0, inks: 0, pairings: 0, dropdowns: 0, errors: [] };
+
+      // Import pens
+      if (data.pens && Array.isArray(data.pens)) {
+        for (const pen of data.pens) {
+          try {
+            await env.DB.prepare(
+              `INSERT OR REPLACE INTO pens (id, brand, line, model, nib_size, nib_material, nib_grind, filling, price, currency, status, purchase_date, store, notes, url, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            ).bind(pen.id, pen.brand || '', pen.line || '', pen.model || '', pen.nibSize || pen.nib_size || '', pen.nibMaterial || pen.nib_material || '', pen.nibGrind || pen.nib_grind || '', pen.filling || '', parseFloat(pen.price) || null, pen.currency || 'USD', pen.status || 'In Collection', pen.purchaseDate || pen.purchase_date || null, pen.store || pen.url || '', pen.notes || '', pen.url || '', pen.createdAt || new Date().toISOString(), new Date().toISOString()).run();
+            results.pens++;
+          } catch (e) { results.errors.push(`pen ${pen.id}: ${e.message}`); }
+        }
+      }
+
+      // Import inks
+      if (data.inks && Array.isArray(data.inks)) {
+        for (const ink of data.inks) {
+          try {
+            await env.DB.prepare(
+              `INSERT OR REPLACE INTO inks (id, brand, name, color, volume, price, currency, notes, url, properties, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            ).bind(ink.id, ink.brand || '', ink.name || '', ink.color || '', ink.volume || '', parseFloat(ink.price) || null, ink.currency || 'USD', ink.notes || '', ink.url || '', JSON.stringify(ink.properties || []), ink.createdAt || new Date().toISOString(), new Date().toISOString()).run();
+            results.inks++;
+          } catch (e) { results.errors.push(`ink ${ink.id}: ${e.message}`); }
+        }
+      }
+
+      // Import pairings
+      if (data.pairings && Array.isArray(data.pairings)) {
+        for (const p of data.pairings) {
+          try {
+            await env.DB.prepare(
+              `INSERT OR REPLACE INTO pairings (id, pen_id, ink_id, rating, verdict, notes, is_active, paired_date, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            ).bind(p.id, p.penId || p.pen_id || '', p.inkId || p.ink_id || '', p.rating || null, p.verdict || '', p.notes || '', p.isActive || p.is_active || 0, p.pairedDate || p.paired_date || null, p.createdAt || new Date().toISOString(), new Date().toISOString()).run();
+            results.pairings++;
+          } catch (e) { results.errors.push(`pairing ${p.id}: ${e.message}`); }
+        }
+      }
+
+      // Import dropdowns
+      if (data.dropdowns && typeof data.dropdowns === 'object') {
+        for (const [category, values] of Object.entries(data.dropdowns)) {
+          if (Array.isArray(values)) {
+            for (let i = 0; i < values.length; i++) {
+              try {
+                await env.DB.prepare('INSERT OR REPLACE INTO dropdowns (category, value, sort_order) VALUES (?, ?, ?)').bind(category, values[i], i).run();
+                results.dropdowns++;
+              } catch (e) { results.errors.push(`dropdown ${category}/${values[i]}: ${e.message}`); }
+            }
+          }
+        }
+      }
+
+      return new Response(JSON.stringify(results), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+    }
+
+    // --- Obsidian Export ---
+    if (pathname === '/api/fp/export/obsidian' && method === 'GET') {
+      const { results: pens } = await env.DB.prepare('SELECT * FROM pens ORDER BY brand, model').all();
+      const { results: inks } = await env.DB.prepare('SELECT * FROM inks ORDER BY brand, name').all();
+      const { results: pairings } = await env.DB.prepare('SELECT p.*, pn.brand as pen_brand, pn.line as pen_line, pn.model as pen_model, pn.nib_size, pn.nib_material, pn.price as pen_price, pn.currency as pen_currency, pn.status as pen_status, i.brand as ink_brand, i.name as ink_name FROM pairings p LEFT JOIN pens pn ON p.pen_id = pn.id LEFT JOIN inks i ON p.ink_id = i.id ORDER BY p.is_active DESC, p.rating DESC').all();
+
+      const inRotation = pens.filter(p => p.status === 'In Rotation');
+      const totalInvestment = pens.reduce((sum, p) => sum + (p.currency === 'USD' ? (p.price || 0) : 0), 0);
+      const totalEUR = pens.reduce((sum, p) => sum + (p.currency === 'EUR' ? (p.price || 0) : 0), 0);
+
+      // Group pens by brand for investment table
+      const brandMap = {};
+      for (const p of pens) {
+        if (!brandMap[p.brand]) brandMap[p.brand] = { count: 0, usd: 0, eur: 0 };
+        brandMap[p.brand].count++;
+        if (p.currency === 'EUR') brandMap[p.brand].eur += (p.price || 0);
+        else brandMap[p.brand].usd += (p.price || 0);
+      }
+      const brandsSorted = Object.entries(brandMap).sort((a, b) => (b[1].usd + b[1].eur * 1.1) - (a[1].usd + a[1].eur * 1.1));
+
+      // Group inks by brand
+      const inkBrandMap = {};
+      for (const i of inks) {
+        if (!inkBrandMap[i.brand]) inkBrandMap[i.brand] = { count: 0, names: [] };
+        inkBrandMap[i.brand].count++;
+        inkBrandMap[i.brand].names.push(i.name);
+      }
+
+      let md = `[[📥 Inbox 2025 - Schubsky]]\n\n`;
+      md += `> *A pen without ink is a thought without voice. The right pairing doesn't just write — it speaks.*\n\n`;
+      md += `**Last updated:** ${new Date().toISOString().split('T')[0]}\n`;
+      md += `**Collection:** ${pens.length} pens · ${inks.length} inks · ${pairings.length} pairings\n`;
+      md += `**Currently inked:** ${inRotation.length} pens in rotation\n\n`;
+      md += `---\n\n`;
+
+      // Active pairings
+      const activePairings = pairings.filter(p => p.is_active);
+      if (activePairings.length > 0) {
+        md += `## 🔥 Currently In Rotation\n\n`;
+        for (const p of activePairings) {
+          md += `#### ${p.pen_brand} ${p.pen_line ? p.pen_line + ' ' : ''}${p.pen_model} × ${p.ink_brand} ${p.ink_name}\n`;
+          md += `- **Nib:** ${p.nib_size || '—'}${p.nib_material ? ' (' + p.nib_material + ')' : ''}\n`;
+          if (p.rating) md += `- **Rating:** ${'⭐'.repeat(p.rating)}\n`;
+          if (p.verdict) md += `- **Verdict:** ${p.verdict}\n`;
+          if (p.notes) md += `- **Notes:** ${p.notes}\n`;
+          md += `\n`;
+        }
+        md += `---\n\n`;
+      }
+
+      // Collection summary
+      md += `## 📊 Collection at a Glance\n\n`;
+      md += `| Category | Count |\n|----------|------:|\n`;
+      md += `| Total Pens | ${pens.length} |\n`;
+      md += `| Currently Inked | ${inRotation.length} |\n`;
+      md += `| Total Inks | ${inks.length} |\n`;
+      md += `| Active Pairings | ${activePairings.length} |\n\n`;
+
+      md += `### Investment by Brand\n\n`;
+      md += `| Brand | Pens | Investment |\n|-------|-----:|----------:|\n`;
+      for (const [brand, data] of brandsSorted) {
+        let inv = '';
+        if (data.usd > 0) inv += `$${data.usd.toLocaleString()}`;
+        if (data.eur > 0) inv += (inv ? ' + ' : '') + `€${data.eur.toLocaleString()}`;
+        if (!inv) inv = '—';
+        md += `| ${brand} | ${data.count} | ${inv} |\n`;
+      }
+      md += `\n**Total Investment: ~$${totalInvestment.toLocaleString()} USD` + (totalEUR > 0 ? ` + ~€${totalEUR.toLocaleString()} EUR` : '') + `**\n\n`;
+
+      md += `---\n\n`;
+
+      // Ink arsenal
+      md += `### 🧪 Ink Arsenal — ${inks.length} Bottles\n\n`;
+      md += `| Brand | Count |\n|-------|------:|\n`;
+      const inkBrandsSorted = Object.entries(inkBrandMap).sort((a, b) => b[1].count - a[1].count);
+      for (const [brand, data] of inkBrandsSorted) {
+        md += `| ${brand} | ${data.count} |\n`;
+      }
+      md += `\n---\n\n`;
+      md += `*This note is synced with the [Fountain Pen Companion](https://medicalpkm.com/apps/shared/fountain-pen/) app.*\n`;
+
+      return new Response(md, { headers: { 'Content-Type': 'text/markdown; charset=utf-8', ...corsHeaders } });
+    }
+
+    // ===== End D1 API Routes =====
 
     let responseHTML;
 
@@ -4888,30 +5131,102 @@ export default {
                 colorFamilies: ['Blue', 'Blue-Black', 'Black', 'Red', 'Green', 'Purple', 'Brown', 'Orange', 'Yellow', 'Pink', 'Turquoise', 'Grey']
             },
 
-            load() {
-                const pens = localStorage.getItem('fpens');
-                const inks = localStorage.getItem('finks');
-                const pairings = localStorage.getItem('fpairings');
-                const dropdowns = localStorage.getItem('fdropdowns');
+            _useD1: false,
+            _d1Ready: false,
 
+            async load() {
+                try {
+                    var responses = await Promise.all([
+                        fetch('/api/fp/pens'), fetch('/api/fp/inks'),
+                        fetch('/api/fp/pairings'), fetch('/api/fp/dropdowns')
+                    ]);
+                    if (responses[0].ok) {
+                        var d1Pens = await responses[0].json();
+                        var d1Inks = await responses[1].json();
+                        var d1Pairings = await responses[2].json();
+                        var d1Dropdowns = await responses[3].json();
+
+                        if (d1Pens.length > 0 || d1Inks.length > 0) {
+                            this.pens = d1Pens.map(function(p) { return {
+                                id: p.id, brand: p.brand, line: p.line, model: p.model,
+                                nibSize: p.nib_size, nibMaterial: p.nib_material, nibGrind: p.nib_grind,
+                                filling: p.filling, price: p.price ? String(p.price) : '',
+                                currency: p.currency, status: p.status,
+                                purchaseDate: p.purchase_date, store: p.store,
+                                notes: p.notes, url: p.url, createdAt: p.created_at
+                            }; });
+                            this.inks = d1Inks.map(function(i) { return {
+                                id: i.id, brand: i.brand, name: i.name, color: i.color,
+                                volume: i.volume, price: i.price ? String(i.price) : '',
+                                currency: i.currency, notes: i.notes, url: i.url,
+                                properties: typeof i.properties === 'string' ? JSON.parse(i.properties) : (i.properties || []),
+                                createdAt: i.created_at
+                            }; });
+                            this.pairings = d1Pairings.map(function(p) { return {
+                                id: p.id, penId: p.pen_id, inkId: p.ink_id,
+                                rating: p.rating, verdict: p.verdict, notes: p.notes,
+                                isActive: p.is_active, pairedDate: p.paired_date, createdAt: p.created_at
+                            }; });
+                            if (Object.keys(d1Dropdowns).length > 0) {
+                                this.dropdowns = Object.assign({}, this.dropdowns, d1Dropdowns);
+                            }
+                            this._useD1 = true;
+                            this._d1Ready = true;
+                            console.log('[FP] Loaded from D1:', this.pens.length, 'pens,', this.inks.length, 'inks');
+                            return;
+                        }
+
+                        var lsPens = localStorage.getItem('fpens');
+                        if (lsPens) {
+                            var parsedPens = JSON.parse(lsPens);
+                            if (parsedPens.length > 0) {
+                                console.log('[FP] D1 empty, migrating', parsedPens.length, 'pens from localStorage...');
+                                var syncData = {
+                                    pens: parsedPens,
+                                    inks: JSON.parse(localStorage.getItem('finks') || '[]'),
+                                    pairings: JSON.parse(localStorage.getItem('fpairings') || '[]'),
+                                    dropdowns: JSON.parse(localStorage.getItem('fdropdowns') || '{}')
+                                };
+                                var syncRes = await fetch('/api/fp/sync', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(syncData)
+                                });
+                                if (syncRes.ok) {
+                                    var result = await syncRes.json();
+                                    console.log('[FP] Migration complete:', result);
+                                    localStorage.setItem('fp_migrated_to_d1', new Date().toISOString());
+                                    return this.load();
+                                }
+                            }
+                        }
+                        this._useD1 = true;
+                        this._d1Ready = true;
+                    }
+                } catch (e) {
+                    console.log('[FP] D1 not available, using localStorage:', e.message);
+                }
+
+                var pens = localStorage.getItem('fpens');
+                var inks = localStorage.getItem('finks');
+                var pairings = localStorage.getItem('fpairings');
+                var dropdowns = localStorage.getItem('fdropdowns');
                 this.pens = pens ? JSON.parse(pens) : [];
                 this.inks = inks ? JSON.parse(inks) : [];
                 this.pairings = pairings ? JSON.parse(pairings) : [];
-
                 if (dropdowns) {
-                    const loaded = JSON.parse(dropdowns);
-                    this.dropdowns = { ...this.dropdowns, ...loaded };
+                    var loaded = JSON.parse(dropdowns);
+                    this.dropdowns = Object.assign({}, this.dropdowns, loaded);
                 } else {
                     this.save();
                 }
             },
 
-            save() {
+            async save() {
                 localStorage.setItem('fpens', JSON.stringify(this.pens));
                 localStorage.setItem('finks', JSON.stringify(this.inks));
                 localStorage.setItem('fpairings', JSON.stringify(this.pairings));
                 localStorage.setItem('fdropdowns', JSON.stringify(this.dropdowns));
-                // Auto-backup: keep a rolling snapshot for recovery
                 try {
                     var backup = JSON.stringify({
                         pens: this.pens, inks: this.inks,
@@ -4919,11 +5234,22 @@ export default {
                         timestamp: new Date().toISOString()
                     });
                     localStorage.setItem('fp_latest_backup', backup);
-                    var today = new Date().toISOString().split('T')[0];
-                    if (!localStorage.getItem('fp_backup_' + today)) {
-                        localStorage.setItem('fp_backup_' + today, backup);
+                } catch(e) {}
+
+                if (this._useD1 && this._d1Ready) {
+                    try {
+                        await fetch('/api/fp/sync', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                pens: this.pens, inks: this.inks,
+                                pairings: this.pairings, dropdowns: this.dropdowns
+                            })
+                        });
+                    } catch (e) {
+                        console.log('[FP] D1 sync failed:', e.message);
                     }
-                } catch(e) { /* localStorage quota — skip backup silently */ }
+                }
             },
 
             addPen(pen) {
@@ -5109,8 +5435,8 @@ export default {
             currentInkProperties: [],
             confirmCallback: null,
 
-            init() {
-                DataManager.load();
+            async init() {
+                await DataManager.load();
                 this.setupEventListeners();
                 this.renderDashboard();
                 this.renderPens();
