@@ -7763,7 +7763,7 @@ a{color:#f59e0b;text-decoration:none;}a:hover{text-decoration:underline;}</style
             <div class="card-body">
                 <div class="card-header">
                     <span class="card-title">KOL Brief Generator</span>
-                    <span class="card-version">v0.4.0</span>
+                    <span class="card-version">v0.5.0</span>
                 </div>
                 <p class="card-desc">Generate comprehensive PDF briefs for Key Opinion Leaders. Conference prep with leadership analysis, expertise mapping, and conversation starters.</p>
                 <span class="card-cta">Open <span class="card-cta-arrow">&rarr;</span></span>
@@ -7799,6 +7799,7 @@ a{color:#f59e0b;text-decoration:none;}a:hover{text-decoration:underline;}</style
     <div class="coming-soon">
         <div class="coming-soon-title">Coming Soon</div>
         <div class="coming-soon-list">
+            <span class="coming-soon-item">Obsidian OS</span>
             <span class="coming-soon-item">Clinical Notes</span>
             <span class="coming-soon-item">Data Viz</span>
             <span class="coming-soon-item">Reading List</span>
