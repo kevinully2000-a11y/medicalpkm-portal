@@ -20,9 +20,9 @@ ACTION=${1:-help}
 MACHINE=$(scutil --get ComputerName 2>/dev/null || hostname)
 
 # All your projects — add new ones here
+# KOL Brief Generator now lives at medicalpkm-portal/apps/kol/ (monorepo)
 REPOS=(
   "$HOME/medicalpkm-portal"
-  "$HOME/kol-brief-generator"
   "$HOME/fountain-pen-companion"
   "$HOME/coc-investigator"
 )
@@ -104,6 +104,12 @@ elif [ "$ACTION" = "pull" ]; then
     if [ -f "package.json" ] && [ ! -d "node_modules" ]; then
       echo "  Installing dependencies (npm install)..."
       npm install --silent 2>&1 | tail -1 | sed 's/^/  /'
+    fi
+
+    # Also check monorepo sub-apps
+    if [ -f "$repo/apps/kol/package.json" ] && [ ! -d "$repo/apps/kol/node_modules" ]; then
+      echo "  Installing KOL app dependencies..."
+      cd "$repo/apps/kol" && npm install --silent 2>&1 | tail -1 | sed 's/^/  /'
     fi
     echo ""
   done

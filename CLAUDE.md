@@ -1,13 +1,11 @@
-# MedicalPKM Portal
+# MedicalPKM — Monorepo
 
 ## Project Overview
-Cloudflare Worker serving the MedicalPKM Digital Hub — the parent project for all apps in the medicalpkm.com ecosystem. This repo owns the portal homepage, Admin Console, embedded apps (Fountain Pen Companion, Private Apps Hub, Sandbox), D1 database, and shared infrastructure.
-
-**Current version:** v0.2.0
+Monorepo for the MedicalPKM Digital Hub — the parent project for all apps in the medicalpkm.com ecosystem. Contains the Portal Worker (homepage, Admin Console, embedded apps, D1 database) and the KOL Brief Generator (Next.js app on Vercel).
 
 ## Architecture
 ```
-medicalpkm.com (this repo — Portal Worker)
+medicalpkm.com (Portal Worker — worker.js)
 ├── /admin/ ................... Admin Console (user mgmt, roles, app permissions)
 ├── / ......................... Portal homepage (app directory)
 ├── /apps/shared/fountain-pen/ . Fountain Pen Companion (embedded SPA)
@@ -18,16 +16,55 @@ medicalpkm.com (this repo — Portal Worker)
 ├── /api/fp/check-access ...... FP permission check endpoint
 ├── /api/fp/export/obsidian ... Obsidian Markdown export
 │
-├── kol.medicalpkm.com ........ KOL Brief Generator (repo: kol-brief-generator)
-└── (future subdomains) ....... Obsidian OS, coding exercises, etc.
+kol.medicalpkm.com (KOL Brief Generator — apps/kol/)
+├── / ......................... Brief library (homepage)
+├── /generate ................. Brief generation form
+├── /batch .................... CSV batch generation
+├── /briefs/:id ............... Individual brief viewer
+├── /api/generate-brief ....... Claude API + PubMed → SSE streaming
+├── /api/briefs ............... Brief CRUD (Vercel KV)
+├── /api/me ................... Current user context from JWT
+└── /api/npi .................. NPI registry lookup
+```
+
+## Repo Structure
+```
+medicalpkm-portal/
+├── worker.js ............. Portal Cloudflare Worker (~7,900 lines)
+├── wrangler.toml ......... Worker config (routes, D1 binding)
+├── migrations/ ........... D1 schema migrations
+├── scripts/ .............. Multi-machine sync, setup, Obsidian export
+├── .gitignore
+├── CLAUDE.md ............. This file
+└── apps/
+    └── kol/ .............. KOL Brief Generator (Next.js, deploys to Vercel)
+        ├── src/app/ ...... Pages + API routes
+        ├── src/components/ UI components
+        ├── src/lib/ ...... Core libraries (auth, KV, prompts, PDF, etc.)
+        ├── src/middleware.ts CF Access JWT verification
+        ├── package.json
+        └── .env.local .... Secrets (gitignored)
 ```
 
 ## Deployment
+
+**Portal** (Cloudflare Worker):
 ```bash
 cd ~/medicalpkm-portal
 node -c worker.js && npx wrangler deploy   # Always validate syntax first!
 ```
 Deploys to: medicalpkm.com + www.medicalpkm.com
+
+**KOL** (Vercel — auto-deploys on push to main):
+```bash
+cd ~/medicalpkm-portal/apps/kol
+npm run dev          # Local development (localhost:3000)
+npm run build        # Verify TypeScript compiles before committing
+```
+Deploys to: kol.medicalpkm.com
+- Vercel Root Directory: `apps/kol`
+- Ignored Build Step: `git diff --quiet HEAD^ HEAD -- apps/kol/` (skips build if only portal files changed)
+- Commits on main MUST use `--author="Kevin Ully <kevin.ully2000@gmail.com>"` or Vercel webhook won't fire
 
 ## Account IDs
 - **Cloudflare Account:** 720188182d247df529ed121b3ddb59e6
@@ -35,6 +72,8 @@ Deploys to: medicalpkm.com + www.medicalpkm.com
 - **Worker name:** medicalpkm
 - **GitHub:** kevinully2000-a11y/medicalpkm-portal
 - **D1 Database:** medicalpkm-fp (ID: 827127ef-961f-40b2-96c0-80d23d62ded7)
+- **Vercel Team:** kevinully2000-7619s-projects
+- **Google Cloud Project (headshots):** kol-headshot-search (CX: e6261e785f17446af)
 
 ## Cloudflare Access (Zero Trust)
 - **Team domain:** medicalpkm.cloudflareaccess.com
@@ -45,10 +84,14 @@ Deploys to: medicalpkm.com + www.medicalpkm.com
 - **Super Admin email:** kevin.ully2000@gmail.com
 - **Admin emails:** bschubsky@gmail.com, bschubsky@vumedi.com
 
-## Admin Console (v0.2.0)
+---
+
+## Portal Worker
+
+### Admin Console (v0.2.0)
 Full user and permission management at `/admin/`.
 
-### Features
+**Features:**
 - **User management:** Add/remove users with email + role (User/Admin/Super Admin)
 - **App permissions:** Clickable chip toggles per user (KOL, FP, Cthulhu) — blue = access, gray = no access
 - **Three-level permission enforcement:**
@@ -58,10 +101,16 @@ Full user and permission management at `/admin/`.
 - **Access Denied page:** Shows which email is logged in + "Switch Account" link
 - **Log Out link** in admin nav bar
 
-### D1 Tables (Admin)
-- `users` — email, role (user/admin/super_admin), created_at
-- `app_permissions` — email, app_id (kol/fp/coc), permission (user/admin/none)
-- Migration: `migrations/0002_admin.sql`
+### D1 Database
+SQLite at the edge — stores pen/ink data and admin tables.
+
+**Tables:** `pens`, `inks`, `pairings`, `dropdowns`, `users`, `app_permissions`
+**Migrations:** `migrations/0001_initial.sql`, `migrations/0002_admin.sql`
+
+```bash
+npx wrangler d1 execute medicalpkm-fp --remote --command "SELECT count(*) FROM pens"
+npx wrangler d1 execute medicalpkm-fp --remote --file=migrations/0003_whatever.sql
+```
 
 ### Admin API Endpoints
 | Method | Path | Description |
@@ -71,65 +120,21 @@ Full user and permission management at `/admin/`.
 | PUT | `/api/admin/users/:email` | Update role and/or app permissions |
 | DELETE | `/api/admin/users/:email` | Remove user + all permissions |
 
-### Helper Functions (in worker.js)
-- `getEmailFromJWT(request)` — Extracts email from CF Access JWT (line ~255)
-- `isSuperAdmin(email)` — Checks if email is kevin.ully2000@gmail.com (line ~266)
-
-## D1 Database (Fountain Pen)
-SQLite at the edge — stores all pen, ink, and pairing data.
-
-**Tables:** `pens`, `inks`, `pairings`, `dropdowns`, `users`, `app_permissions`
-**Migrations:** `migrations/0001_initial.sql`, `migrations/0002_admin.sql`
-**Data:** 58 pens, 83 inks, 3 pairings (migrated from localStorage 2026-03-19)
-
-**Commands:**
-```bash
-# Query the database
-npx wrangler d1 execute medicalpkm-fp --remote --command "SELECT count(*) FROM pens"
-npx wrangler d1 execute medicalpkm-fp --remote --command "SELECT email, role FROM users"
-
-# Run a migration
-npx wrangler d1 execute medicalpkm-fp --remote --file=migrations/0003_whatever.sql
-```
-
-**FP API Endpoints** (all gated by app permissions):
+### FP API Endpoints (permission-gated)
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/api/fp/check-access` | Check if current user has FP permission |
-| GET | `/api/fp/pens` | List all pens |
-| POST | `/api/fp/pens` | Create a pen |
-| PUT | `/api/fp/pens/:id` | Update a pen |
-| DELETE | `/api/fp/pens/:id` | Delete a pen |
-| GET | `/api/fp/inks` | List all inks |
-| POST | `/api/fp/inks` | Create an ink |
-| PUT | `/api/fp/inks/:id` | Update an ink |
-| DELETE | `/api/fp/inks/:id` | Delete an ink |
-| GET | `/api/fp/pairings` | List all pairings |
-| POST | `/api/fp/pairings` | Create a pairing |
-| DELETE | `/api/fp/pairings/:id` | Delete a pairing |
-| GET | `/api/fp/dropdowns` | List dropdown options |
+| GET/POST/PUT/DELETE | `/api/fp/pens` | Pen CRUD |
+| GET/POST/PUT/DELETE | `/api/fp/inks` | Ink CRUD |
+| GET/POST/DELETE | `/api/fp/pairings` | Pairing CRUD |
+| GET | `/api/fp/dropdowns` | Dropdown options |
 | POST | `/api/fp/sync` | Bulk import (migration) |
 | GET | `/api/fp/export/obsidian` | Export as Obsidian Markdown |
 
-## Child Projects
-| Project | Repo | Deployed To |
-|---------|------|-------------|
-| KOL Brief Generator | `~/kol-brief-generator/` | Vercel → kol.medicalpkm.com |
-| Fountain Pen Companion | Embedded in this Worker | medicalpkm.com/apps/shared/fountain-pen/ |
-| Cthulhu Investigator | Embedded in this Worker | medicalpkm.com/apps/private/ |
-
-## Key Files
-- `worker.js` — Monolithic Worker (~7,900 lines). Portal routing + embedded app HTML/CSS/JS + D1 API + Admin Console.
-- `wrangler.toml` — Worker config (name, routes, D1 binding)
-- `migrations/` — D1 schema migrations
-- `scripts/sync.sh` — Mac22 ↔ Mac24 project sync
-- `scripts/setup-machine.sh` — First-time machine setup
-- `scripts/sync-obsidian-fp.sh` — Export FP data to Obsidian vault
-
-## Worker Route Structure
-Routes are handled via `pathname.startsWith()` in a cascading if-else:
-1. `/api/admin/*` → Admin API endpoints (returns JSON)
-2. `/api/fp/*` → FP D1 API endpoints (permission-gated, returns JSON)
+### Worker Route Structure
+Routes handled via `pathname.startsWith()` in cascading if-else:
+1. `/api/admin/*` → Admin API (returns JSON)
+2. `/api/fp/*` → FP D1 API (permission-gated, returns JSON)
 3. `/admin/` → Admin Console (admin/super_admin only)
 4. `/sandbox/fountain-pen/` → Sandbox FP app (no D1, localStorage only)
 5. `/sandbox/` → General sandbox
@@ -137,20 +142,60 @@ Routes are handled via `pathname.startsWith()` in a cascading if-else:
 7. `/apps/shared/fountain-pen/` → Production FP app (D1-enabled, permission-gated)
 8. `/` (default) → Portal homepage
 
-## Version History
-| Tag | Description |
-|-----|-------------|
-| v0.0.1 | Initial portal extraction from kol-brief-generator |
-| v0.1.0 | D1 database, FP API endpoints, sync scripts |
-| v0.2.0 | Admin Console with app-level permissions (current) |
+### Helper Functions (in worker.js)
+- `getEmailFromJWT(request)` — Extracts email from CF Access JWT
+- `isSuperAdmin(email)` — Checks if email is kevin.ully2000@gmail.com
 
-## Known Issues & Lessons Learned
-- **worker.js has duplicate FP code** — sandbox FP (~line 812) and production FP (~line 4323) have nearly identical HTML/JS. The Edit tool often matches both. Use Python with line numbers to target the production version specifically.
-- **Template strings contain backticks** — The FP app's embedded JS uses template literals (`\`...\``). When editing, be aware of nested backtick escaping.
-- **Always `node -c worker.js` before deploying** — esbuild (wrangler) reports line numbers from bundled output, not source. Node's syntax check catches errors with correct line numbers.
-- **CF Access 302 redirects** — Client-side `fetch()` to `/api/fp/*` can get redirected to CF Access login if the session expired. The FP app has a catch block that falls back to localStorage.
-- **Commit author on main** — Use `--author="Kevin Ully <kevin.ully2000@gmail.com>"` or Vercel webhook won't fire (for KOL app).
-- **`printf '%s'` not `echo`** when piping env vars to `vercel env add` — echo adds trailing `\n`.
+---
+
+## KOL Brief Generator (apps/kol/)
+
+### Overview
+Next.js 16 web app that generates Key Opinion Leader briefs for medical affairs professionals using Claude API + PubMed research. Current version: **v0.5.0**.
+
+### Tech Stack
+- **Frontend:** Next.js 16.1.6, React 19.2.3, TypeScript, Tailwind CSS 4
+- **AI:** Anthropic Claude Sonnet 4.5 with `web_search_20250305` tool
+- **Research:** PubMed E-utilities API (free, no key, 3 req/sec)
+- **Storage:** Vercel KV (Upstash Redis)
+- **Auth:** CF Access JWT validated in middleware
+- **PDF:** jsPDF + JSZip for batch export
+- **Headshots:** Google CSE + Wikipedia API + institution scraping
+
+### Key Files
+- `src/app/page.tsx` — Library homepage (brief grid with filters)
+- `src/app/generate/page.tsx` — Brief generation form
+- `src/app/batch/page.tsx` — CSV batch generation
+- `src/app/api/generate-brief/route.ts` — PubMed → Claude API → SSE streaming
+- `src/lib/prompts.ts` — Evidence-grounded system + user prompts
+- `src/lib/research.ts` — PubMed E-utilities integration
+- `src/lib/kv.ts` — Vercel KV operations
+- `src/lib/auth.ts` — CF Access JWT extraction (server + client)
+- `src/lib/headshot.ts` — Multi-strategy headshot fetcher
+- `src/middleware.ts` — CF Access JWT verification + auth bypass
+
+### Environment Variables (apps/kol/.env.local)
+- `ANTHROPIC_API_KEY` — Claude API key
+- `KV_REST_API_URL` / `KV_REST_API_TOKEN` — Vercel KV (Upstash Redis)
+- `GOOGLE_CSE_API_KEY` / `GOOGLE_CSE_CX` — Google Custom Search for headshots
+- `CLOUDFLARE_ACCESS_TOKEN` — CF API token for user management
+
+### KOL Features
+- **Evidence-grounded generation:** PubMed pre-fetch + Claude web search (anti-hallucination)
+- **Evidence badges:** Color-coded (Verified/Grounded/Limited Data/Caution)
+- **Batch generation:** CSV import, sequential generation, cost tracking, ZIP download
+- **NPI integration:** NPI registry lookup for physician verification
+- **PDF export:** jsPDF with headshot embedding
+- **Library filters:** Search by name, date, specialty, institution, version, visibility
+
+### Known Constraints
+- Vercel Hobby: 60-second serverless timeout (brief generation streams to stay within)
+- Brief generation cost: ~$0.15-0.25/brief (web search + large input tokens)
+- PubMed API: free, 3 req/sec, 5-second timeout with graceful degradation
+- CF Access preview URLs bypass auth — test auth features on production only
+- Always use `printf '%s'` not `echo` when piping env vars to `vercel env add`
+
+---
 
 ## Scripts
 ```bash
@@ -166,60 +211,52 @@ Routes are handled via `pathname.startsWith()` in a cascading if-else:
 ./scripts/sync-obsidian-fp.sh
 ```
 
+## Known Issues & Lessons Learned
+- **worker.js has duplicate FP code** — sandbox FP (~line 812) and production FP (~line 4323) have nearly identical HTML/JS. The Edit tool often matches both. Use Python with line numbers to target the production version specifically.
+- **Template strings contain backticks** — The FP app's embedded JS uses template literals. Be aware of nested backtick escaping.
+- **Always `node -c worker.js` before deploying** — esbuild (wrangler) reports line numbers from bundled output, not source.
+- **CF Access 302 redirects** — Client-side `fetch()` can get redirected to CF Access login if session expired.
+- **Commit author on main** — Use `--author="Kevin Ully <kevin.ully2000@gmail.com>"` or Vercel webhook won't fire.
+
 ## User Preferences
 - **Always explain commands before running them** — the user is learning CLI
 - **Commit messages:** Use `--author="Kevin Ully <kevin.ully2000@gmail.com>"` on main branch
 - **Branching:** Work on feature branches, merge to main for production
 - **Two machines:** Mac22 (desktop, primary) and Mac24 (travel laptop)
 
+## Version History
+| Tag | Description |
+|-----|-------------|
+| Portal v0.0.1 | Initial portal extraction from kol-brief-generator |
+| Portal v0.1.0 | D1 database, FP API endpoints, sync scripts |
+| Portal v0.2.0 | Admin Console with app-level permissions |
+| KOL v0.3.0 | Version tagging, headshots, filters, batch generation |
+| KOL v0.4.0 | Evidence-grounded briefs (PubMed + web search) |
+| KOL v0.5.0 | NPI integration, conference indexing, batch ZIP download |
+| Monorepo | KOL moved into medicalpkm-portal/apps/kol/ |
+
 ## Session Continuity
 1. Read this CLAUDE.md first for ecosystem context
 2. Run `git log --oneline -5` to see recent changes
 3. Run `git status` to check for uncommitted work
 4. Run `git branch` to confirm you're on the right branch
-5. Deploy with `node -c worker.js && npx wrangler deploy`
-6. Verify: `curl -s -o /dev/null -w "%{http_code}" https://medicalpkm.com` (expect 302 = CF Access)
+5. Portal deploy: `node -c worker.js && npx wrangler deploy`
+6. KOL dev: `cd apps/kol && npm run dev`
+7. KOL build check: `cd apps/kol && npm run build`
 
 ## Cross-Device Handoff
 
 **Last updated:** 2026-03-20
 
-**Status:** v0.2.0 deployed to production — Admin Console live
+**Status:** Portal v0.2.0 + KOL v0.5.0 deployed. Monorepo migration completed.
 
-**What was done (2026-03-19 / 2026-03-20):**
-
-1. **Admin Console** (`/admin/`):
-   - D1 migration `0002_admin.sql` — `users` and `app_permissions` tables
-   - Admin API routes: CRUD users, update roles, manage per-app permissions
-   - Admin HTML page with stats dashboard, user list, clickable app chip toggles
-   - Super Admin / Admin / User roles with proper access control
-   - Seeded D1 with 9 users from existing CF Access whitelist
-
-2. **App-level permission enforcement**:
-   - Server-side page gate for FP and Cthulhu — themed "no access" pages
-   - API gate on all `/api/fp/*` endpoints — returns 403 for unauthorized users
-   - Client-side check — FP app calls `/api/fp/check-access` on load
-   - Clickable app chips in user rows — toggle KOL/FP/Cthulhu access directly
-
-3. **FP data secured in D1**:
-   - Auto-migration from localStorage failed (CF Access redirect + empty localStorage)
-   - Manual migration via browser console (`/api/fp/sync` POST) — 58 pens, 83 inks, 3 pairings
-   - D1 is now the source of truth, localStorage is backup
-
-4. **UX improvements**:
-   - Log Out link in admin nav bar (CF Access logout URL)
-   - Access Denied page shows logged-in email + "Switch Account" link
-   - Promoted bschubsky@gmail.com and bschubsky@vumedi.com to admin role
-
-**Previous session (2026-03-19):**
-- Extracted portal to its own repo (medicalpkm-portal)
-- Created D1 database with FP tables
-- Added D1 API endpoints + auto-migration logic
-- Created sync scripts for multi-machine workflow
+**What was done (2026-03-20):**
+1. **Monorepo migration**: Moved KOL Brief Generator from separate repo (`kol-brief-generator`) into `apps/kol/` via git subtree. Single repo, single CLAUDE.md, independent deployments.
+2. Updated `scripts/sync.sh` and `scripts/setup-machine.sh` to reflect monorepo structure.
 
 **Next steps:**
-1. Update KOL app — remove its local admin page, add link to portal admin, add permission check via portal API
-2. KOL app corporate migration — company may create dev environment under corporate domain
-3. Headshot KV caching (30-day TTL)
-4. Complete Google CSE fix for headshot auto-fetch
+1. Configure Vercel: Connect medicalpkm-portal repo, set Root Directory to `apps/kol`, set Ignored Build Step
+2. Remove KOL local admin page — replace with link to medicalpkm.com/admin/. Add permission check via portal API
+3. Complete Google CSE fix for headshot auto-fetch
+4. Headshot KV caching (30-day TTL)
 5. Obsidian sync — verify `/api/fp/export/obsidian` endpoint works with D1 data

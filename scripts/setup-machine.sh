@@ -36,9 +36,9 @@ echo "✓ Node.js $(node --version) found"
 echo ""
 
 # Clone repos
+# KOL Brief Generator now lives at medicalpkm-portal/apps/kol/ (monorepo)
 REPOS=(
   "medicalpkm-portal"
-  "kol-brief-generator"
   "fountain-pen-companion"
   "coc-investigator"
 )
@@ -62,13 +62,19 @@ for repo in "${REPOS[@]}"; do
   fi
 done
 
+# Install monorepo sub-app dependencies
+if [ -f "$HOME/medicalpkm-portal/apps/kol/package.json" ]; then
+  echo "Installing KOL app dependencies..."
+  cd "$HOME/medicalpkm-portal/apps/kol" && npm install --silent
+fi
+
 echo ""
 echo "========================================="
 echo "  MANUAL STEPS NEEDED"
 echo "========================================="
 echo ""
 echo "1. Copy .env.local from your other Mac:"
-echo "   scp Mac22:~/kol-brief-generator/.env.local ~/kol-brief-generator/.env.local"
+echo "   scp Mac22:~/medicalpkm-portal/apps/kol/.env.local ~/medicalpkm-portal/apps/kol/.env.local"
 echo ""
 echo "2. Log in to Cloudflare (for Worker deploys):"
 echo "   npx wrangler login"
