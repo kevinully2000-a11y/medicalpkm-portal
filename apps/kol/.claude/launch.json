@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3000
+    },
+    {
+      "name": "coc-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "/Users/bschubsky_personal/coc-investigator"],
+      "port": 5173
+    },
+    {
+      "name": "mockup",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["http-server", "/Users/bschubsky_personal/medicalpkm-portal/mockups", "-p", "8090", "-c-1"],
+      "port": 8090
+    }
+  ]
+}
