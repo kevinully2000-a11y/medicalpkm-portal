@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --suite-nav: #1e293b;
+  --suite-bg: #f8fafc;
+  --suite-amber: #d97706;
+  --suite-sky: #0ea5e9;
+  --suite-emerald: #10b981;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-suite-nav: var(--suite-nav);
+  --color-suite-bg: var(--suite-bg);
+  --color-suite-amber: var(--suite-amber);
+  --color-suite-sky: var(--suite-sky);
+  --color-suite-emerald: var(--suite-emerald);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
