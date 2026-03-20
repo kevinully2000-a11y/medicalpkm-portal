@@ -1,0 +1,14 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env*
+
+# Cloudflare
+.wrangler/
+
+# macOS
+.DS_Store
+
+# Editor
+.claude/
