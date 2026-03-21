@@ -7,6 +7,8 @@ import { BriefSummary, UserContext, Priority } from '@/lib/types';
 import BriefCard from '@/components/BriefCard';
 import FilterBar from '@/components/FilterBar';
 import { downloadBriefsAsZip, BatchDownloadProgress } from '@/lib/batch-download';
+import { isTourCompleted } from '@/lib/tour-steps';
+import OnboardingTour from '@/components/OnboardingTour';
 
 export default function LibraryPage() {
   const router = useRouter();
@@ -15,6 +17,7 @@ export default function LibraryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<UserContext | null>(null);
+  const [showTour, setShowTour] = useState(false);
 
   useEffect(() => {
     fetchBriefs();
@@ -26,6 +29,10 @@ export default function LibraryPage() {
       .catch(() => {
         // Not critical — default to non-admin
       });
+    // Show tour for first-time users
+    if (!isTourCompleted()) {
+      setShowTour(true);
+    }
   }, []);
 
   async function fetchBriefs() {
@@ -177,11 +184,13 @@ export default function LibraryPage() {
 
       {!loading && allBriefs.length > 0 && (
         <>
-          <FilterBar
-            briefs={allBriefs}
-            onFilteredChange={handleFilteredChange}
-            isAdmin={user?.isAdmin ?? false}
-          />
+          <div data-tour="search">
+            <FilterBar
+              briefs={allBriefs}
+              onFilteredChange={handleFilteredChange}
+              isAdmin={user?.isAdmin ?? false}
+            />
+          </div>
           {filteredBriefs.length > 0 ? (
             <>
               {/* Batch Download Bar */}
@@ -259,6 +268,7 @@ export default function LibraryPage() {
           )}
         </>
       )}
+      {showTour && <OnboardingTour onComplete={() => setShowTour(false)} />}
     </div>
   );
 }

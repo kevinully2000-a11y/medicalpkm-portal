@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strategic Tier — John Flack, MD</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        'suite-sky': '#0284c7',
+        'suite-amber': '#d97706',
+      }
+    }
+  }
+}
+</script>
+<style>
+  .tier-pill.active { background: white; color: #111827; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+  .section-card { transition: all 0.2s ease; }
+  .section-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+  .toc-link.active { color: #0284c7; font-weight: 600; }
+  html { scroll-behavior: smooth; }
+</style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+<!-- Header Bar -->
+<div class="bg-white border-b border-gray-200">
+  <div class="max-w-7xl mx-auto px-6 h-11 flex items-center justify-between">
+    <nav class="flex gap-0.5 -mb-px">
+      <a href="#" class="px-3 py-2.5 text-sm font-medium border-b-2 border-suite-sky text-suite-sky">Library</a>
+      <a href="#" class="px-3 py-2.5 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">Generate Brief</a>
+      <a href="#" class="px-3 py-2.5 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">Batch</a>
+    </nav>
+    <div class="flex items-center gap-2">
+      <button class="w-6 h-6 rounded-full bg-gray-100 text-gray-400 hover:bg-sky-100 hover:text-sky-600 text-xs font-bold flex items-center justify-center" title="Take a Tour">?</button>
+      <span class="px-1.5 py-0.5 bg-gray-100 text-gray-400 rounded text-xs font-medium">v0.6.0</span>
+    </div>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-6 py-8">
+
+  <!-- Tier Selector -->
+  <div class="flex gap-1 bg-gray-100 rounded-lg p-1 mb-6" id="tier-selector">
+    <button onclick="switchTier('executive')" class="tier-pill flex-1 px-3 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors" id="tier-executive">
+      Executive <span class="hidden sm:inline text-xs opacity-60">2-page quick prep</span>
+    </button>
+    <button onclick="switchTier('strategic')" class="tier-pill active flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors" id="tier-strategic">
+      Strategic <span class="hidden sm:inline text-xs opacity-60">Key insights</span>
+    </button>
+    <button onclick="switchTier('comprehensive')" class="tier-pill flex-1 px-3 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors" id="tier-comprehensive">
+      Comprehensive <span class="hidden sm:inline text-xs opacity-60">Full research</span>
+    </button>
+  </div>
+
+  <div class="flex gap-8">
+
+    <!-- Sticky TOC -->
+    <nav class="hidden lg:block w-48 flex-shrink-0">
+      <div class="sticky top-8 space-y-1">
+        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-2">Contents</p>
+        <a href="#executive-summary" class="toc-link active block px-2 py-1 text-sm rounded hover:bg-gray-100 transition-colors">Executive Summary</a>
+        <a href="#professional-background" class="toc-link block px-2 py-1 text-sm text-gray-500 rounded hover:bg-gray-100 transition-colors">Professional Background</a>
+        <a href="#expertise-research" class="toc-link block px-2 py-1 text-sm text-gray-500 rounded hover:bg-gray-100 transition-colors">Expertise & Research</a>
+        <a href="#recent-work" class="toc-link block px-2 py-1 text-sm text-gray-500 rounded hover:bg-gray-100 transition-colors">Recent Work</a>
+        <a href="#conversation-starters" class="toc-link block px-2 py-1 text-sm text-gray-500 rounded hover:bg-gray-100 transition-colors">Conversation Starters</a>
+      </div>
+    </nav>
+
+    <!-- Content -->
+    <div class="flex-1 min-w-0">
+
+      <!-- Header Card -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <div class="flex items-start gap-5">
+          <div class="w-20 h-20 rounded-full bg-sky-100 flex items-center justify-center text-sky-600 text-2xl font-bold flex-shrink-0">JF</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-3 mb-1">
+              <h1 class="text-2xl font-bold text-gray-900">John M. Flack, MD, MPH</h1>
+              <span class="px-1.5 py-0.5 bg-green-50 text-green-600 rounded text-xs font-medium">&#10003; Verified</span>
+            </div>
+            <p class="text-gray-600 text-sm mb-3">Chair, Department of Hypertensive Diseases &mdash; Virginia Commonwealth University Health</p>
+
+            <!-- Leadership Positions -->
+            <div class="flex flex-wrap gap-1.5 mb-3">
+              <span class="px-2 py-0.5 bg-sky-50 text-sky-700 rounded text-xs font-medium">Chair, VCU Hypertensive Diseases</span>
+              <span class="px-2 py-0.5 bg-sky-50 text-sky-700 rounded text-xs font-medium">ISHIB President (2016-2018)</span>
+              <span class="px-2 py-0.5 bg-sky-50 text-sky-700 rounded text-xs font-medium">ACC/AHA Guideline Committee</span>
+            </div>
+
+            <!-- Metrics -->
+            <div class="flex gap-4 text-xs text-gray-500">
+              <span>329 publications</span>
+              <span>H-index ~90</span>
+              <span>Cardiology / Nephrology</span>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center gap-3 mt-4">
+              <button class="px-3 py-1.5 bg-suite-amber text-white rounded-lg text-sm font-medium hover:bg-amber-700 transition-colors flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Export PDF
+              </button>
+              <span class="text-xs text-gray-400">Generated Mar 21, 2026 &middot; $0.22</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Executive Summary -->
+      <div id="executive-summary" class="section-card bg-white rounded-xl shadow-sm border border-gray-200 border-l-4 border-l-sky-500 p-6 mb-4">
+        <div class="flex items-center justify-between mb-3 cursor-pointer" onclick="toggleSection(this)">
+          <h2 class="text-lg font-bold text-gray-900">Executive Summary</h2>
+          <svg class="w-5 h-5 text-gray-400 transform rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </div>
+        <div class="section-content">
+          <p class="text-sm text-gray-700 leading-relaxed">Dr. John M. Flack is one of the foremost authorities on hypertension in the United States, with particular expertise in resistant hypertension and racial/ethnic disparities in cardiovascular outcomes. As Chair of the Department of Hypertensive Diseases at Virginia Commonwealth University Health, he leads a program uniquely dedicated to hypertension as a standalone clinical and research discipline. His h-index of approximately 90 and 329+ PubMed-indexed publications place him among the most-cited hypertension researchers globally. He served as President of the International Society on Hypertension in Blacks (ISHIB, 2016&ndash;2018) and contributed to the 2017 ACC/AHA Hypertension Guidelines that redefined blood pressure thresholds.</p>
+        </div>
+      </div>
+
+      <!-- Professional Background (truncated in Strategic) -->
+      <div id="professional-background" class="section-card bg-white rounded-xl shadow-sm border border-gray-200 border-l-4 border-l-emerald-500 p-6 mb-4">
+        <div class="flex items-center justify-between mb-3 cursor-pointer" onclick="toggleSection(this)">
+          <h2 class="text-lg font-bold text-gray-900">Professional Background</h2>
+          <svg class="w-5 h-5 text-gray-400 transform rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </div>
+        <div class="section-content">
+          <p class="text-sm text-gray-700 leading-relaxed">Dr. Flack completed his MD at the University of Michigan Medical School and MPH from the University of Michigan School of Public Health. He held faculty positions at Bowman Gray School of Medicine (Wake Forest) and served as Chief of the Division of Translational Research and Clinical Epidemiology at Wayne State University before joining VCU in 2017 as founding Chair of the Department of Hypertensive Diseases.</p>
+          <p class="text-xs text-sky-600 mt-2 cursor-pointer hover:underline" onclick="alert('In the real app, this expands to show the full section')">View full section &rarr;</p>
+        </div>
+      </div>
+
+      <!-- Expertise & Research -->
+      <div id="expertise-research" class="section-card bg-white rounded-xl shadow-sm border border-gray-200 border-l-4 border-l-violet-500 p-6 mb-4">
+        <div class="flex items-center justify-between mb-3 cursor-pointer" onclick="toggleSection(this)">
+          <h2 class="text-lg font-bold text-gray-900">Expertise & Research</h2>
+          <svg class="w-5 h-5 text-gray-400 transform rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </div>
+        <div class="section-content">
+          <p class="text-sm text-gray-700 leading-relaxed">Dr. Flack&rsquo;s research centers on three interconnected domains: (1) <strong>resistant and treatment-resistant hypertension</strong>, including combination therapy optimization and aldosterone-mediated mechanisms; (2) <strong>racial/ethnic disparities in blood pressure control</strong>, with landmark studies on early-onset hypertension in Black Americans and target organ damage trajectories; and (3) <strong>blood pressure variability</strong> as an independent cardiovascular risk factor. He has served as PI or co-PI on multiple NIH-funded studies examining these themes, and his work informed both the JNC-7 and 2017 ACC/AHA guideline panels.</p>
+        </div>
+      </div>
+
+      <!-- Recent Work (Strategic shows this) -->
+      <div id="recent-work" class="section-card bg-white rounded-xl shadow-sm border border-gray-200 border-l-4 border-l-amber-500 p-6 mb-4">
+        <div class="flex items-center justify-between mb-3 cursor-pointer" onclick="toggleSection(this)">
+          <h2 class="text-lg font-bold text-gray-900">Recent Work & Trends (2024&ndash;2025)</h2>
+          <svg class="w-5 h-5 text-gray-400 transform rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </div>
+        <div class="section-content">
+          <p class="text-sm text-gray-700 leading-relaxed">In 2024&ndash;2025, Dr. Flack has focused on the <strong>BaxHTN clinical trial program</strong> (baxdrostat, CinCor Pharma / AstraZeneca), a first-in-class aldosterone synthase inhibitor for treatment-resistant hypertension. He presented Phase 2 results at AHA 2024 showing 10&ndash;12 mmHg systolic reduction in resistant patients. He also published a key <em>Hypertension</em> editorial (Jan 2025) on redefining resistant hypertension classification, and continues advocacy work on hypertension screening disparities through his ISHIB leadership network.</p>
+        </div>
+      </div>
+
+      <!-- Conversation Starters -->
+      <div id="conversation-starters" class="mt-8">
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Conversation Starters</h2>
+        <div class="space-y-4">
+
+          <!-- Starter 1 -->
+          <div class="bg-white rounded-xl shadow-sm border border-gray-200 border-l-4 border-l-sky-500 p-6">
+            <h3 class="font-semibold text-gray-900 mb-2">BaxHTN Phase 2 Results &mdash; AHA 2024 Presentation</h3>
+            <p class="text-sm text-gray-700 mb-3">Your AHA 2024 presentation showed baxdrostat achieving 10&ndash;12 mmHg systolic BP reduction in treatment-resistant patients. With Phase 3 enrollment underway, this could become the first aldosterone synthase inhibitor approved for resistant hypertension &mdash; a class you&rsquo;ve advocated for since your 2019 <em>JACC</em> review on mineralocorticoid-driven resistance.</p>
+            <p class="text-sm text-sky-700 italic">&ldquo;As the Phase 3 program expands, what educational gaps do you see in helping cardiologists identify candidates for aldosterone synthase inhibition vs. existing MRA therapy?&rdquo;</p>
+          </div>
+
+          <!-- Starter 2 -->
+          <div class="bg-white rounded-xl shadow-sm border border-gray-200 border-l-4 border-l-sky-500 p-6">
+            <h3 class="font-semibold text-gray-900 mb-2">Resistant HTN Reclassification &mdash; <em>Hypertension</em> Editorial, Jan 2025</h3>
+            <p class="text-sm text-gray-700 mb-3">Your January 2025 editorial in <em>Hypertension</em> proposed reclassifying treatment-resistant hypertension based on aldosterone phenotyping rather than drug count alone. This framework could change how clinical trials are designed and how clinicians identify patients who need targeted therapies beyond triple combination.</p>
+            <p class="text-sm text-sky-700 italic">&ldquo;How receptive have guideline committees been to phenotype-based classification, and what evidence would tip the next ACC/AHA update toward adopting it?&rdquo;</p>
+          </div>
+
+          <!-- Starter 3 -->
+          <div class="bg-white rounded-xl shadow-sm border border-gray-200 border-l-4 border-l-sky-500 p-6">
+            <h3 class="font-semibold text-gray-900 mb-2">ISHIB Legacy &mdash; Screening Disparity Programs</h3>
+            <p class="text-sm text-gray-700 mb-3">During your ISHIB presidency (2016&ndash;2018), you launched the community-based screening initiative that documented 23% undiagnosed hypertension rates in underserved Black communities. Your 2024 follow-up study in <em>Journal of Clinical Hypertension</em> showed sustained 15% improvement in diagnosis rates in participating clinics.</p>
+            <p class="text-sm text-sky-700 italic">&ldquo;With the sustained results from your screening initiative, what role could digital health or telehealth play in scaling the ISHIB model nationally?&rdquo;</p>
+          </div>
+
+          <!-- Starter 4 -->
+          <div class="bg-white rounded-xl shadow-sm border border-gray-200 border-l-4 border-l-sky-500 p-6">
+            <h3 class="font-semibold text-gray-900 mb-2">VCU Hypertensive Diseases Department &mdash; Unique Academic Model</h3>
+            <p class="text-sm text-gray-700 mb-3">VCU&rsquo;s standalone Department of Hypertensive Diseases, which you founded in 2017, is one of the only dedicated hypertension departments at a US academic medical center. It combines clinical care, fellowship training, and translational research under one umbrella &mdash; a model that other institutions have inquired about replicating.</p>
+            <p class="text-sm text-sky-700 italic">&ldquo;What challenges have you encountered in building a hypertension-focused fellowship, and how has the department&rsquo;s integrated model influenced your clinical trial recruitment capabilities?&rdquo;</p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Citations (collapsed in Strategic) -->
+      <div class="mt-8">
+        <button onclick="document.getElementById('citations').classList.toggle('hidden')" class="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          Sources (8 citations)
+        </button>
+        <div id="citations" class="hidden mt-3 space-y-2">
+          <a href="#" class="block text-xs text-sky-600 hover:underline">VCU Health &mdash; Department of Hypertensive Diseases Faculty Profile</a>
+          <a href="#" class="block text-xs text-sky-600 hover:underline">PubMed &mdash; Flack JM publications (329 results)</a>
+          <a href="#" class="block text-xs text-sky-600 hover:underline">AHA 2024 Scientific Sessions &mdash; Baxdrostat Phase 2 Late-Breaking</a>
+          <a href="#" class="block text-xs text-sky-600 hover:underline">Hypertension (2025) &mdash; Reclassifying Treatment-Resistant Hypertension</a>
+          <a href="#" class="block text-xs text-sky-600 hover:underline">ISHIB &mdash; Past Presidents</a>
+          <a href="#" class="block text-xs text-sky-600 hover:underline">Journal of Clinical Hypertension (2024) &mdash; Community Screening Follow-up</a>
+          <a href="#" class="block text-xs text-sky-600 hover:underline">2017 ACC/AHA Hypertension Guideline &mdash; Writing Committee</a>
+          <a href="#" class="block text-xs text-sky-600 hover:underline">JACC (2019) &mdash; Mineralocorticoid-Driven Resistant Hypertension Review</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleSection(header) {
+  const content = header.nextElementSibling;
+  const chevron = header.querySelector('svg');
+  content.classList.toggle('hidden');
+  chevron.classList.toggle('rotate-180');
+}
+
+function switchTier(tier) {
+  document.querySelectorAll('.tier-pill').forEach(el => el.classList.remove('active'));
+  document.getElementById('tier-' + tier).classList.add('active');
+  // In the real app, this would show/hide sections per tier
+  if (tier === 'executive') {
+    alert('Executive tier: Shows only Header + Executive Summary + Conversation Starters (title + question only, no body). ~2 pages.');
+  } else if (tier === 'comprehensive') {
+    alert('Comprehensive tier: Shows all sections expanded, plus Notable Achievements section. Full detail.');
+  }
+}
+</script>
+
+</body>
+</html>

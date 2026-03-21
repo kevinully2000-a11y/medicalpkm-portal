@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Executive Tier — John Flack, MD (2-Page Quick Prep)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        'suite-sky': '#0284c7',
+        'suite-amber': '#d97706',
+      }
+    }
+  }
+}
+</script>
+<style>
+  .tier-pill.active { background: white; color: #111827; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+</style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+<!-- Header Bar -->
+<div class="bg-white border-b border-gray-200">
+  <div class="max-w-7xl mx-auto px-6 h-11 flex items-center justify-between">
+    <nav class="flex gap-0.5 -mb-px">
+      <a href="#" class="px-3 py-2.5 text-sm font-medium border-b-2 border-suite-sky text-suite-sky">Library</a>
+      <a href="#" class="px-3 py-2.5 text-sm font-medium border-b-2 border-transparent text-gray-500">Generate Brief</a>
+      <a href="#" class="px-3 py-2.5 text-sm font-medium border-b-2 border-transparent text-gray-500">Batch</a>
+    </nav>
+    <span class="px-1.5 py-0.5 bg-gray-100 text-gray-400 rounded text-xs font-medium">v0.6.0</span>
+  </div>
+</div>
+
+<div class="max-w-3xl mx-auto px-6 py-8">
+
+  <!-- Tier Selector -->
+  <div class="flex gap-1 bg-gray-100 rounded-lg p-1 mb-6">
+    <button class="tier-pill active flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+      Executive <span class="hidden sm:inline text-xs opacity-60">2-page quick prep</span>
+    </button>
+    <button class="tier-pill flex-1 px-3 py-2 rounded-md text-sm font-medium text-gray-500">
+      Strategic <span class="hidden sm:inline text-xs opacity-60">Key insights</span>
+    </button>
+    <button class="tier-pill flex-1 px-3 py-2 rounded-md text-sm font-medium text-gray-500">
+      Comprehensive <span class="hidden sm:inline text-xs opacity-60">Full research</span>
+    </button>
+  </div>
+
+  <!-- Note: No sticky TOC in Executive tier — content is short enough -->
+
+  <!-- Header Card -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+    <div class="flex items-start gap-5">
+      <div class="w-20 h-20 rounded-full bg-sky-100 flex items-center justify-center text-sky-600 text-2xl font-bold flex-shrink-0">JF</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-3 mb-1">
+          <h1 class="text-2xl font-bold text-gray-900">John M. Flack, MD, MPH</h1>
+          <span class="px-1.5 py-0.5 bg-green-50 text-green-600 rounded text-xs font-medium">&#10003; Verified</span>
+        </div>
+        <p class="text-gray-600 text-sm mb-3">Chair, Department of Hypertensive Diseases &mdash; Virginia Commonwealth University Health</p>
+
+        <div class="flex flex-wrap gap-1.5 mb-3">
+          <span class="px-2 py-0.5 bg-sky-50 text-sky-700 rounded text-xs font-medium">Chair, VCU Hypertensive Diseases</span>
+          <span class="px-2 py-0.5 bg-sky-50 text-sky-700 rounded text-xs font-medium">ISHIB President (2016-2018)</span>
+          <span class="px-2 py-0.5 bg-sky-50 text-sky-700 rounded text-xs font-medium">ACC/AHA Guideline Committee</span>
+        </div>
+
+        <div class="flex gap-4 text-xs text-gray-500">
+          <span>329 publications</span>
+          <span>H-index ~90</span>
+          <span>Cardiology / Nephrology</span>
+        </div>
+
+        <div class="flex items-center gap-3 mt-4">
+          <button class="px-3 py-1.5 bg-suite-amber text-white rounded-lg text-sm font-medium hover:bg-amber-700 transition-colors flex items-center gap-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Export PDF
+          </button>
+          <span class="text-xs text-gray-400">Generated Mar 21, 2026 &middot; $0.22</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Executive Summary — ONLY narrative section in Executive tier -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 border-l-4 border-l-sky-500 p-6 mb-6">
+    <h2 class="text-lg font-bold text-gray-900 mb-3">Executive Summary</h2>
+    <p class="text-sm text-gray-700 leading-relaxed">Dr. John M. Flack is one of the foremost authorities on hypertension in the United States, with particular expertise in resistant hypertension and racial/ethnic disparities in cardiovascular outcomes. As Chair of the Department of Hypertensive Diseases at Virginia Commonwealth University Health, he leads a program uniquely dedicated to hypertension as a standalone clinical and research discipline. His h-index of approximately 90 and 329+ PubMed-indexed publications place him among the most-cited hypertension researchers globally. He served as President of the International Society on Hypertension in Blacks (ISHIB, 2016&ndash;2018) and contributed to the 2017 ACC/AHA Hypertension Guidelines that redefined blood pressure thresholds.</p>
+  </div>
+
+  <!-- Conversation Starters — Title + Question ONLY (no body) -->
+  <div class="mb-6">
+    <h2 class="text-xl font-bold text-gray-900 mb-4">Quick Questions</h2>
+    <div class="space-y-3">
+
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 border-l-4 border-l-sky-500 p-4">
+        <h3 class="font-semibold text-gray-900 text-sm mb-1">BaxHTN Phase 2 Results &mdash; AHA 2024</h3>
+        <p class="text-sm text-sky-700 italic">&ldquo;As the Phase 3 program expands, what educational gaps do you see in helping cardiologists identify candidates for aldosterone synthase inhibition vs. existing MRA therapy?&rdquo;</p>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 border-l-4 border-l-sky-500 p-4">
+        <h3 class="font-semibold text-gray-900 text-sm mb-1">Resistant HTN Reclassification &mdash; <em>Hypertension</em>, Jan 2025</h3>
+        <p class="text-sm text-sky-700 italic">&ldquo;How receptive have guideline committees been to phenotype-based classification, and what evidence would tip the next ACC/AHA update?&rdquo;</p>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 border-l-4 border-l-sky-500 p-4">
+        <h3 class="font-semibold text-gray-900 text-sm mb-1">ISHIB Screening Initiative &mdash; 15% Sustained Improvement</h3>
+        <p class="text-sm text-sky-700 italic">&ldquo;What role could digital health play in scaling the ISHIB community-based screening model nationally?&rdquo;</p>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 border-l-4 border-l-sky-500 p-4">
+        <h3 class="font-semibold text-gray-900 text-sm mb-1">VCU Standalone HTN Department &mdash; Unique Academic Model</h3>
+        <p class="text-sm text-sky-700 italic">&ldquo;How has the integrated department model influenced your clinical trial recruitment capabilities?&rdquo;</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- No Citations in Executive tier -->
+  <p class="text-center text-xs text-gray-400 mt-8">Executive view &mdash; switch to Strategic or Comprehensive for full sections and citations</p>
+
+</div>
+
+<!-- Visual comparison callout -->
+<div class="max-w-3xl mx-auto px-6 pb-12">
+  <div class="bg-amber-50 border border-amber-200 rounded-xl p-6 mt-8">
+    <h3 class="font-bold text-amber-900 mb-2">What changed vs. the old 9-page brief?</h3>
+    <ul class="text-sm text-amber-800 space-y-1.5">
+      <li><strong>Before:</strong> 9 pages, sections repeat "health disparities + resistant hypertension" theme 5+ times</li>
+      <li><strong>After (Executive):</strong> ~1.5 pages. Header + exec summary + 4 quick questions. Done.</li>
+      <li><strong>Conversation starters:</strong> Title + question only &mdash; no essay paragraphs</li>
+      <li><strong>Each question</strong> references a specific publication, trial, role, or data point</li>
+      <li><strong>Zero generic starters</strong> like "Would you like to repurpose your presentation?"</li>
+    </ul>
+  </div>
+</div>
+
+</body>
+</html>

@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { APP_VERSION } from '@/lib/constants';
 import { UserContext } from '@/lib/types';
 import SuiteNav from '@/components/SuiteNav';
+import { resetTour } from '@/lib/tour-steps';
 
 const CF_LOGOUT_URL = 'https://medicalpkm.cloudflareaccess.com/cdn-cgi/access/logout';
 
@@ -55,6 +56,7 @@ export default function Header() {
                   <Link
                     key={tab.href}
                     href={tab.href}
+                    data-tour={tab.href === '/generate' ? 'generate' : undefined}
                     className={`px-3 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                       isActive
                         ? 'border-suite-sky text-suite-sky'
@@ -66,9 +68,21 @@ export default function Header() {
                 );
               })}
             </nav>
-            <span className="px-1.5 py-0.5 bg-gray-100 text-gray-400 rounded text-xs font-medium flex-shrink-0 ml-4">
-              v{APP_VERSION}
-            </span>
+            <div className="flex items-center gap-2 flex-shrink-0 ml-4">
+              <button
+                onClick={() => {
+                  resetTour();
+                  window.location.reload();
+                }}
+                className="w-6 h-6 rounded-full bg-gray-100 text-gray-400 hover:bg-sky-100 hover:text-sky-600 text-xs font-bold transition-colors flex items-center justify-center"
+                title="Take a Tour"
+              >
+                ?
+              </button>
+              <span className="px-1.5 py-0.5 bg-gray-100 text-gray-400 rounded text-xs font-medium">
+                v{APP_VERSION}
+              </span>
+            </div>
           </div>
         </div>
       </div>

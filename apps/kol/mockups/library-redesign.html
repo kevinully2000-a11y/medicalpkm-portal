@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Library Redesign — Brief Cards with Tier Badges</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        'suite-sky': '#0284c7',
+        'suite-amber': '#d97706',
+      }
+    }
+  }
+}
+</script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+<!-- Header Bar -->
+<div class="bg-white border-b border-gray-200">
+  <div class="max-w-7xl mx-auto px-6 h-11 flex items-center justify-between">
+    <nav class="flex gap-0.5 -mb-px">
+      <a href="#" class="px-3 py-2.5 text-sm font-medium border-b-2 border-suite-sky text-suite-sky">Library</a>
+      <a href="#" class="px-3 py-2.5 text-sm font-medium border-b-2 border-transparent text-gray-500">Generate Brief</a>
+      <a href="#" class="px-3 py-2.5 text-sm font-medium border-b-2 border-transparent text-gray-500">Batch</a>
+    </nav>
+    <div class="flex items-center gap-2">
+      <button class="w-6 h-6 rounded-full bg-gray-100 text-gray-400 hover:bg-sky-100 hover:text-sky-600 text-xs font-bold flex items-center justify-center">?</button>
+      <span class="px-1.5 py-0.5 bg-gray-100 text-gray-400 rounded text-xs font-medium">v0.6.0</span>
+    </div>
+  </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-6 py-8">
+  <div class="flex justify-between items-center mb-8">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Brief Library</h1>
+      <p class="mt-1 text-gray-600">Your generated KOL briefs for conference preparation</p>
+    </div>
+    <a href="#" class="px-4 py-2.5 bg-suite-amber text-white font-medium rounded-lg hover:bg-amber-700 transition-colors flex items-center gap-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+      New Brief
+    </a>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+    <div class="flex items-center gap-3">
+      <div class="flex-1 relative">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" placeholder="Search by name, specialty, conference..." class="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm">
+      </div>
+      <select class="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600">
+        <option>All Dates</option>
+      </select>
+      <select class="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600">
+        <option>All Specialties</option>
+      </select>
+      <select class="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600">
+        <option>All Priorities</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Batch Download Bar -->
+  <div class="flex items-center justify-between mb-4">
+    <p class="text-sm text-gray-500">17 briefs</p>
+    <button class="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      Download All as ZIP
+    </button>
+  </div>
+
+  <!-- Brief Cards Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+    <!-- Card 1: Strategic tier, High priority, Verified -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer group">
+      <div class="p-4">
+        <div class="flex items-start gap-3 mb-3">
+          <div class="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center text-sky-600 text-sm font-bold flex-shrink-0">JF</div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-sm text-gray-900 truncate group-hover:text-suite-sky transition-colors">John M. Flack, MD, MPH</p>
+            <p class="text-xs text-gray-500 truncate">Virginia Commonwealth University</p>
+          </div>
+          <span class="px-1.5 py-0.5 bg-green-50 text-green-600 rounded text-xs font-medium flex-shrink-0">&#10003; Verified</span>
+        </div>
+        <div class="flex flex-wrap gap-1 mb-3">
+          <span class="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">Cardiology</span>
+          <span class="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">Nephrology</span>
+          <span class="px-1.5 py-0.5 bg-sky-50 text-sky-600 rounded text-xs font-medium">Strategic</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 text-xs text-gray-400">
+            <span>Mar 21, 2026</span>
+            <span>&middot;</span>
+            <span>$0.22</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="px-1.5 py-0.5 bg-red-50 text-red-600 rounded text-xs font-medium">High</span>
+            <span class="text-xs text-gray-400">ACC.26</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Executive tier, Medium priority -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer group">
+      <div class="p-4">
+        <div class="flex items-start gap-3 mb-3">
+          <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 text-sm font-bold flex-shrink-0">AS</div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-sm text-gray-900 truncate group-hover:text-suite-sky transition-colors">Ami B. Shah, MD, FACC</p>
+            <p class="text-xs text-gray-500 truncate">Brigham and Women's Hospital</p>
+          </div>
+          <span class="px-1.5 py-0.5 bg-green-50 text-green-600 rounded text-xs font-medium flex-shrink-0">&#10003; Verified</span>
+        </div>
+        <div class="flex flex-wrap gap-1 mb-3">
+          <span class="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">Interventional Cardiology</span>
+          <span class="px-1.5 py-0.5 bg-amber-50 text-amber-600 rounded text-xs font-medium">Executive</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 text-xs text-gray-400">
+            <span>Mar 20, 2026</span>
+            <span>&middot;</span>
+            <span>$0.19</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="px-1.5 py-0.5 bg-yellow-50 text-yellow-700 rounded text-xs font-medium">Medium</span>
+            <span class="text-xs text-gray-400">ACC.26</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Comprehensive, High priority -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer group">
+      <div class="p-4">
+        <div class="flex items-start gap-3 mb-3">
+          <div class="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 text-sm font-bold flex-shrink-0">RK</div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-sm text-gray-900 truncate group-hover:text-suite-sky transition-colors">Roxana Mehran, MD, FACC</p>
+            <p class="text-xs text-gray-500 truncate">Icahn School of Medicine at Mount Sinai</p>
+          </div>
+          <span class="px-1.5 py-0.5 bg-green-50 text-green-600 rounded text-xs font-medium flex-shrink-0">&#10003; Verified</span>
+        </div>
+        <div class="flex flex-wrap gap-1 mb-3">
+          <span class="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">Interventional Cardiology</span>
+          <span class="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">Clinical Trials</span>
+          <span class="px-1.5 py-0.5 bg-violet-50 text-violet-600 rounded text-xs font-medium">Comprehensive</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 text-xs text-gray-400">
+            <span>Mar 19, 2026</span>
+            <span>&middot;</span>
+            <span>$0.25</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="px-1.5 py-0.5 bg-red-50 text-red-600 rounded text-xs font-medium">High</span>
+            <span class="text-xs text-gray-400">ACC.26</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 4: Grounded evidence level -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer group">
+      <div class="p-4">
+        <div class="flex items-start gap-3 mb-3">
+          <div class="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 text-sm font-bold flex-shrink-0">DC</div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-sm text-gray-900 truncate group-hover:text-suite-sky transition-colors">Deepak L. Bhatt, MD, MPH</p>
+            <p class="text-xs text-gray-500 truncate">Mount Sinai Heart</p>
+          </div>
+          <span class="px-1.5 py-0.5 bg-sky-50 text-sky-600 rounded text-xs font-medium flex-shrink-0">&#9673; Grounded</span>
+        </div>
+        <div class="flex flex-wrap gap-1 mb-3">
+          <span class="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">Cardiology</span>
+          <span class="px-1.5 py-0.5 bg-sky-50 text-sky-600 rounded text-xs font-medium">Strategic</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 text-xs text-gray-400">
+            <span>Mar 18, 2026</span>
+            <span>&middot;</span>
+            <span>$0.21</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="px-1.5 py-0.5 bg-yellow-50 text-yellow-700 rounded text-xs font-medium">Medium</span>
+            <span class="text-xs text-gray-400">ACC.26</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 5: Low priority, older -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer group">
+      <div class="p-4">
+        <div class="flex items-start gap-3 mb-3">
+          <div class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 text-sm font-bold flex-shrink-0">EP</div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-sm text-gray-900 truncate group-hover:text-suite-sky transition-colors">Eugene Braunwald, MD</p>
+            <p class="text-xs text-gray-500 truncate">Harvard Medical School</p>
+          </div>
+          <span class="px-1.5 py-0.5 bg-green-50 text-green-600 rounded text-xs font-medium flex-shrink-0">&#10003; Verified</span>
+        </div>
+        <div class="flex flex-wrap gap-1 mb-3">
+          <span class="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">Cardiology</span>
+          <span class="px-1.5 py-0.5 bg-sky-50 text-sky-600 rounded text-xs font-medium">Strategic</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 text-xs text-gray-400">
+            <span>Mar 15, 2026</span>
+            <span>&middot;</span>
+            <span>$0.18</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-xs font-medium">Low</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 6: v0.5.0 old brief (no tier badge) -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer group">
+      <div class="p-4">
+        <div class="flex items-start gap-3 mb-3">
+          <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 text-sm font-bold flex-shrink-0">MK</div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-sm text-gray-900 truncate group-hover:text-suite-sky transition-colors">Michelle Kittleson, MD, PhD</p>
+            <p class="text-xs text-gray-500 truncate">Cedars-Sinai Medical Center</p>
+          </div>
+          <span class="px-1.5 py-0.5 bg-green-50 text-green-600 rounded text-xs font-medium flex-shrink-0">&#10003; Verified</span>
+        </div>
+        <div class="flex flex-wrap gap-1 mb-3">
+          <span class="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">Heart Failure</span>
+          <span class="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">Transplant</span>
+          <!-- No tier badge — v0.5.0 brief defaults to Comprehensive -->
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 text-xs text-gray-400">
+            <span>Mar 10, 2026</span>
+            <span>&middot;</span>
+            <span>$0.24</span>
+            <span>&middot;</span>
+            <span class="text-gray-300">v0.5.0</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="px-1.5 py-0.5 bg-red-50 text-red-600 rounded text-xs font-medium">High</span>
+            <span class="text-xs text-gray-400">ACC.26</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Design Notes -->
+<div class="max-w-7xl mx-auto px-6 pb-12">
+  <div class="bg-sky-50 border border-sky-200 rounded-xl p-6 mt-8">
+    <h3 class="font-bold text-sky-900 mb-3">Design Notes — Library Cards v0.6.0</h3>
+    <ul class="text-sm text-sky-800 space-y-1.5">
+      <li><strong>Tier badge:</strong> Color-coded pill shows Executive (amber), Strategic (sky), Comprehensive (violet). Old briefs (no tier) show no badge and default to Comprehensive when opened.</li>
+      <li><strong>Priority badge:</strong> High (red), Medium (yellow), Low (blue) — now visible on cards for at-a-glance triage.</li>
+      <li><strong>Conference tag:</strong> "ACC.26" shown next to priority for conference-based filtering.</li>
+      <li><strong>Evidence badge:</strong> Still present in top-right (Verified / Grounded / Limited Data / Caution).</li>
+      <li><strong>Version indicator:</strong> Old briefs show "v0.5.0" in gray — subtle but visible for auditing.</li>
+      <li><strong>"?" button:</strong> Top-right in header bar — restarts the onboarding tour.</li>
+    </ul>
+  </div>
+</div>
+
+</body>
+</html>

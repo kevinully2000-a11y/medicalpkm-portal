@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
             tools: [{
               type: 'web_search_20250305' as const,
               name: 'web_search',
-              max_uses: getMaxWebSearchUses(research.evidenceLevel),
+              max_uses: body.maxWebSearches ?? getMaxWebSearchUses(research.evidenceLevel),
             }],
           });
 
@@ -232,6 +232,7 @@ export async function POST(request: NextRequest) {
                   .filter(Boolean)
               : undefined,
             priority: body.priority || undefined,
+            briefTier: body.briefTier || 'strategic',
           };
 
           // Save to KV

@@ -40,6 +40,16 @@ ${formatPubMedEvidence(pubmed)}
 
 ${getEvidenceLevelInstructions(evidenceLevel)}
 
+## ANTI-REDUNDANCY RULES (CRITICAL)
+- Each section MUST cover DIFFERENT material. Before writing any section, mentally review what you already wrote. DO NOT repeat themes, facts, or framings across sections.
+- Executive Summary: Why this person matters + leadership authority + partnership value. High-level ONLY — do not go deep on any single topic.
+- Professional Background: Career timeline and positions ONLY (training → appointments → current role). NO research description, NO awards.
+- Expertise & Research: Research domains, methodology, and clinical expertise ONLY. NOT career history, NOT awards.
+- Notable Achievements: Awards, honors, impact metrics, landmark publications ONLY. NOT research description, NOT career history.
+- Recent Work & Trends: 2024-2025 activities ONLY. What are they doing RIGHT NOW? NOT historical accomplishments.
+- If a fact fits multiple sections, include it in only ONE (the most relevant) and do not repeat it.
+- Total brief narrative (all 5 sections combined) should be 1,500-2,500 words for high/moderate evidence. NOT 3,000-5,000. Conciseness is a feature, not a flaw.
+
 ## OUTPUT FORMAT
 You MUST return valid JSON matching this exact structure. Do not include any text outside the JSON object.
 
@@ -153,8 +163,8 @@ Generate a MINIMAL brief:
 // ── Helper: JSON Schema ────────────────────────────────────────────────────
 
 function getJsonSchema(level: import('./research').EvidenceLevel): string {
-  const starterCount = level === 'high' || level === 'moderate' ? 6 :
-                       level === 'low' ? '3-4' : '1-2';
+  const starterCount = level === 'high' || level === 'moderate' ? 'up to 6 — only as many as are specific and data-grounded' :
+                       level === 'low' ? 'up to 3' : 'up to 2';
 
   return `{
   "kolName": "Full Name",
@@ -177,7 +187,7 @@ function getJsonSchema(level: import('./research').EvidenceLevel): string {
   "expertiseAndResearch": "${level === 'minimal' ? 'Based on PubMed topics and web search only' : level === 'low' ? '1-2 paragraphs on verified research areas' : '2-3 paragraphs on core competencies, research focus areas, and topics they could teach authoritatively'}",
   "notableAchievements": "${level === 'minimal' ? 'Only verified achievements or Insufficient verified information available' : level === 'low' ? '1 paragraph on verified achievements' : '2-3 paragraphs on awards, publications, educational contributions, and impact'}",
   "recentWork": "${level === 'minimal' ? 'Only verified recent activity or Insufficient verified information available' : level === 'low' ? '1 paragraph on verified 2024-2025 activities' : '2-3 paragraphs on 2024-2025 activities, recent publications, presentations, educational initiatives'}",
-  "conversationStarters": [${starterCount} objects, each: {"title": "Specific Topic Title", "body": "150-250 word discussion with concrete examples", "question": "Open-ended strategic question to ask the KOL"}],
+  "conversationStarters": [${starterCount} objects, each: {"title": "Specific Topic — Source Year", "body": "• [FACT]: verified claim with number/date.\\n• [CONTEXT]: one sentence of context.\\n• [HOOK]: educational partnership angle. (40-80 words, bullet format ONLY)", "question": "Specific question only THIS KOL could answer"}],
   "disclaimer": ${level === 'low' || level === 'minimal' ? '"REQUIRED: Explain what evidence was and was not available"' : '"Optional: Include if any sections have limited evidence"'}
 }`;
 }
@@ -186,31 +196,50 @@ function getJsonSchema(level: import('./research').EvidenceLevel): string {
 
 function getConversationStarterInstructions(level: import('./research').EvidenceLevel): string {
   if (level === 'minimal') {
-    return `- Generate only 1-2 conversation starters
-- Base them ONLY on verified information (even if generic)
-- Each must be 100-200 words
-- Focus on their verified specialty/practice area and general educational partnership value
-- Do NOT reference specific achievements, publications, or positions unless verified`;
+    return `- Generate up to 2 conversation starters — only include ones grounded in verified information
+- CRITICAL: Every starter MUST have all three fields: "title", "body", AND "question". Never leave "body" empty.
+- Each "body" must be 30-50 words MAX
+- Base them ONLY on verified information from web search
+- Do NOT reference specific achievements, publications, or positions unless verified
+- Do NOT pad with generic talking points`;
   }
 
   if (level === 'low') {
-    return `- Generate 3-4 conversation starters
-- Each must be 150-250 words (strictly enforced)
+    return `- Generate up to 3 conversation starters — only as many as you can make SPECIFIC and data-grounded
+- CRITICAL: Every starter MUST have all three fields: "title", "body", AND "question". Never leave "body" empty.
+- Each "body" must be 50-100 words MAX. This is a quick-reference card, NOT an essay.
 - Ground them in verified PubMed publications or web search findings
 - At least 1 should reference a specific verified publication or activity
-- At least 1 should explore general educational partnership value in their specialty
-- Do NOT fabricate specific dates, numbers, or achievements`;
+- Do NOT fabricate specific dates, numbers, or achievements
+- Do NOT include generic starters — if you can only find 1 specific topic, generate only 1 starter`;
   }
 
-  return `- Exactly 6 conversation starters required
-- Each must be 150-250 words (strictly enforced)
-- Titles must be specific and descriptive (NOT generic like "Leadership in Cardiology")
-- First paragraph: Concrete examples with dates, numbers, specific names — verified via PubMed or web search
-- Second paragraph: Frame a medical education partnership angle — what value could the KOL gain? Think: amplifying their voice in the areas they've been leading, faculty development, digital distribution of their expertise, learner engagement data, repurposing existing educational content
-- The opening question should be conversational and intriguing, NOT salesy — the goal is to get the KOL talking about their work and how we can help amplify it
-- At least 2 starters should explore how we can amplify the KOL's voice in areas they've been leading
-- At least 2 should connect their research expertise to content creation opportunities
-- Avoid any language about financial compensation, consulting fees, or paid advisory roles`;
+  return `- Generate UP TO 6 conversation starters — only as many as you can make SPECIFIC and data-grounded. 3 excellent starters beat 6 generic ones.
+- CRITICAL: Every starter MUST have all three fields populated: "title", "body", AND "question". Do NOT leave "body" empty.
+
+### BODY FORMAT (MANDATORY — follow this EXACT structure):
+Each "body" must use this bullet-point template. Do NOT write flowing prose or paragraphs.
+
+TEMPLATE:
+• [FACT]: One sentence stating a specific verified fact with a number, date, or name.
+• [CONTEXT]: One sentence adding relevant context (e.g., journal, trial phase, patient count, role).
+• [HOOK]: One sentence connecting this to an educational partnership opportunity.
+
+EXAMPLE (GOOD — follow this style):
+"• Led CLEAR Outcomes trial (NEJM, March 2023) — bempedoic acid reduced MACE by 13% in 13,970 statin-intolerant patients.\\n• First large outcomes trial proving a non-statin LDL-lowering drug reduces cardiovascular events.\\n• Faculty opportunity: clinician education on managing the growing statin-intolerant population."
+
+EXAMPLE (BAD — never do this):
+"On The Drive podcast, you expressed frustration with the scientific climate's emphasis on consensus. That podcast reached hundreds of thousands of listeners — a massive physician audience. How did that direct-to-clinician format compare to traditional dissemination? Would serialized educational content reaching similar audiences help accelerate practice change?"
+
+The BAD example is an essay that buries the data point. The GOOD example leads with verifiable facts and ends with a clear hook. ALWAYS use the bullet-point template.
+
+- Each body: 40-80 words MAX. If you hit 80, stop writing.
+- QUALITY GATE: "Could a generic KOL in the same specialty answer this question?" If yes, DELETE IT.
+- Titles must name a SPECIFIC publication, trial, role, or activity (e.g., "CLEAR Outcomes Trial — NEJM 2023" NOT "Leadership in Lipid Research")
+- The "question" must reference something only THIS KOL would know — their specific data, role, or program
+- NEVER write paragraphs of background — the user already read the executive summary
+- NEVER include generic starters about "amplifying your voice" or "repurposing educational content"
+- NEVER mention financial compensation, consulting fees, or paid advisory roles`;
 }
 
 // ── User Prompt Builder ────────────────────────────────────────────────────
