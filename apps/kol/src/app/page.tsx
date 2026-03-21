@@ -7,7 +7,7 @@ import { BriefSummary, UserContext, Priority } from '@/lib/types';
 import BriefCard from '@/components/BriefCard';
 import FilterBar from '@/components/FilterBar';
 import { downloadBriefsAsZip, BatchDownloadProgress } from '@/lib/batch-download';
-import { isTourCompleted } from '@/lib/tour-steps';
+import { isLibraryTourCompleted, completeLibraryTour, LIBRARY_TOUR_STEPS } from '@/lib/tour-steps';
 import OnboardingTour from '@/components/OnboardingTour';
 
 export default function LibraryPage() {
@@ -30,7 +30,7 @@ export default function LibraryPage() {
         // Not critical — default to non-admin
       });
     // Show tour for first-time users
-    if (!isTourCompleted()) {
+    if (!isLibraryTourCompleted()) {
       setShowTour(true);
     }
   }, []);
@@ -268,7 +268,15 @@ export default function LibraryPage() {
           )}
         </>
       )}
-      {showTour && <OnboardingTour onComplete={() => setShowTour(false)} />}
+      {showTour && (
+        <OnboardingTour
+          steps={LIBRARY_TOUR_STEPS}
+          onComplete={() => {
+            completeLibraryTour();
+            setShowTour(false);
+          }}
+        />
+      )}
     </div>
   );
 }

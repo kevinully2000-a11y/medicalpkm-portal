@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { KOLBrief, UserContext } from '@/lib/types';
 import BriefViewer from '@/components/BriefViewer';
+import OnboardingTour from '@/components/OnboardingTour';
+import { isBriefTourCompleted, completeBriefTour, BRIEF_TOUR_STEPS } from '@/lib/tour-steps';
 
 export default function BriefDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -13,6 +15,7 @@ export default function BriefDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [user, setUser] = useState<UserContext | null>(null);
+  const [showBriefTour, setShowBriefTour] = useState(false);
 
   useEffect(() => {
     fetch(`/api/briefs/${id}`)
@@ -25,7 +28,13 @@ export default function BriefDetailPage() {
         }
       })
       .catch(() => setError('Failed to load brief'))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        if (!isBriefTourCompleted()) {
+          // Delay slightly so BriefViewer renders data-tour elements first
+          setTimeout(() => setShowBriefTour(true), 800);
+        }
+      });
 
     fetch('/api/me')
       .then((r) => r.json())
@@ -173,6 +182,15 @@ export default function BriefDetailPage() {
           )}
         </div>
       </div>
+      {showBriefTour && (
+        <OnboardingTour
+          steps={BRIEF_TOUR_STEPS}
+          onComplete={() => {
+            completeBriefTour();
+            setShowBriefTour(false);
+          }}
+        />
+      )}
       <BriefViewer
         brief={brief}
         onUpdate={async (updates) => {

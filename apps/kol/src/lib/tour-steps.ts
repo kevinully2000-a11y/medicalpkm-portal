@@ -5,7 +5,8 @@ export interface TourStep {
   placement: 'top' | 'bottom' | 'left' | 'right';
 }
 
-export const TOUR_STEPS: TourStep[] = [
+// Library page tour (shown on first visit)
+export const LIBRARY_TOUR_STEPS: TourStep[] = [
   {
     targetSelector: '[data-tour="search"]',
     title: 'Search & Filter',
@@ -18,6 +19,10 @@ export const TOUR_STEPS: TourStep[] = [
     description: 'Create an AI-powered KOL brief with PubMed-verified research and web search validation.',
     placement: 'bottom',
   },
+];
+
+// Brief viewer tour (shown on first brief view)
+export const BRIEF_TOUR_STEPS: TourStep[] = [
   {
     targetSelector: '[data-tour="tier"]',
     title: 'Choose Your Depth',
@@ -38,17 +43,41 @@ export const TOUR_STEPS: TourStep[] = [
   },
 ];
 
-const TOUR_KEY = 'kol-tour-completed';
+const LIBRARY_TOUR_KEY = 'kol-library-tour-completed';
+const BRIEF_TOUR_KEY = 'kol-brief-tour-completed';
 
-export function isTourCompleted(): boolean {
+export function isLibraryTourCompleted(): boolean {
   if (typeof window === 'undefined') return true;
-  return localStorage.getItem(TOUR_KEY) === 'true';
+  return localStorage.getItem(LIBRARY_TOUR_KEY) === 'true';
+}
+
+export function isBriefTourCompleted(): boolean {
+  if (typeof window === 'undefined') return true;
+  return localStorage.getItem(BRIEF_TOUR_KEY) === 'true';
+}
+
+export function completeLibraryTour(): void {
+  localStorage.setItem(LIBRARY_TOUR_KEY, 'true');
+}
+
+export function completeBriefTour(): void {
+  localStorage.setItem(BRIEF_TOUR_KEY, 'true');
+}
+
+export function resetTours(): void {
+  localStorage.removeItem(LIBRARY_TOUR_KEY);
+  localStorage.removeItem(BRIEF_TOUR_KEY);
+}
+
+// Legacy — keep for backward compat
+export function isTourCompleted(): boolean {
+  return isLibraryTourCompleted();
 }
 
 export function completeTour(): void {
-  localStorage.setItem(TOUR_KEY, 'true');
+  completeLibraryTour();
 }
 
 export function resetTour(): void {
-  localStorage.removeItem(TOUR_KEY);
+  resetTours();
 }

@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.5.0';
+export const APP_VERSION = '0.6.0';
 export const ADMIN_EMAIL = 'kevin.ully2000@gmail.com';
 
 // Cloudflare Access config — used by admin user management API
