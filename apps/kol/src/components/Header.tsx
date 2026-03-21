@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { APP_VERSION } from '@/lib/constants';
 import { UserContext } from '@/lib/types';
 import SuiteNav from '@/components/SuiteNav';
-import { resetTour } from '@/lib/tour-steps';
+import { resetTours } from '@/lib/tour-steps';
 
 const CF_LOGOUT_URL = 'https://medicalpkm.cloudflareaccess.com/cdn-cgi/access/logout';
 
@@ -71,7 +71,7 @@ export default function Header() {
             <div className="flex items-center gap-2 flex-shrink-0 ml-4">
               <button
                 onClick={() => {
-                  resetTour();
+                  resetTours();
                   window.location.reload();
                 }}
                 className="w-6 h-6 rounded-full bg-gray-100 text-gray-400 hover:bg-sky-100 hover:text-sky-600 text-xs font-bold transition-colors flex items-center justify-center"

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { TOUR_STEPS, completeTour, type TourStep } from '@/lib/tour-steps';
+import type { TourStep } from '@/lib/tour-steps';
 
 interface TooltipPosition {
   top: number;
@@ -15,19 +15,29 @@ interface SpotlightRect {
   height: number;
 }
 
-export default function OnboardingTour({ onComplete }: { onComplete: () => void }) {
+interface OnboardingTourProps {
+  steps: TourStep[];
+  onComplete: () => void;
+}
+
+export default function OnboardingTour({ steps, onComplete }: OnboardingTourProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [spotlight, setSpotlight] = useState<SpotlightRect | null>(null);
   const [tooltipPos, setTooltipPos] = useState<TooltipPosition>({ top: 0, left: 0 });
   const [visible, setVisible] = useState(false);
 
-  const step = TOUR_STEPS[currentStep];
+  const step = steps[currentStep];
+
+  const handleComplete = useCallback(() => {
+    setVisible(false);
+    onComplete();
+  }, [onComplete]);
 
   const positionElements = useCallback((tourStep: TourStep) => {
     const target = document.querySelector(tourStep.targetSelector);
     if (!target) {
       // Skip to next step if target not found
-      if (currentStep < TOUR_STEPS.length - 1) {
+      if (currentStep < steps.length - 1) {
         setCurrentStep((s) => s + 1);
       } else {
         handleComplete();
@@ -71,16 +81,16 @@ export default function OnboardingTour({ onComplete }: { onComplete: () => void 
     }
 
     setTooltipPos({ top, left });
-  }, [currentStep]);
+  }, [currentStep, steps.length, handleComplete]);
 
   useEffect(() => {
     // Small delay to let the page render
     const timer = setTimeout(() => {
       setVisible(true);
-      positionElements(TOUR_STEPS[0]);
+      positionElements(steps[0]);
     }, 500);
     return () => clearTimeout(timer);
-  }, [positionElements]);
+  }, [positionElements, steps]);
 
   useEffect(() => {
     if (!visible) return;
@@ -91,14 +101,8 @@ export default function OnboardingTour({ onComplete }: { onComplete: () => void 
     return () => window.removeEventListener('resize', handleResize);
   }, [currentStep, step, visible, positionElements]);
 
-  const handleComplete = useCallback(() => {
-    completeTour();
-    setVisible(false);
-    onComplete();
-  }, [onComplete]);
-
   const handleNext = () => {
-    if (currentStep < TOUR_STEPS.length - 1) {
+    if (currentStep < steps.length - 1) {
       setCurrentStep((s) => s + 1);
     } else {
       handleComplete();
@@ -135,7 +139,7 @@ export default function OnboardingTour({ onComplete }: { onComplete: () => void 
       >
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-base font-semibold text-gray-900">{step.title}</h3>
-          <span className="text-xs text-gray-400">{currentStep + 1}/{TOUR_STEPS.length}</span>
+          <span className="text-xs text-gray-400">{currentStep + 1}/{steps.length}</span>
         </div>
         <p className="text-sm text-gray-600 mb-4">{step.description}</p>
         <div className="flex items-center justify-between">
@@ -149,7 +153,7 @@ export default function OnboardingTour({ onComplete }: { onComplete: () => void 
             onClick={handleNext}
             className="px-4 py-2 bg-sky-600 text-white text-sm font-medium rounded-lg hover:bg-sky-700 transition-colors"
           >
-            {currentStep < TOUR_STEPS.length - 1 ? 'Next' : 'Done'}
+            {currentStep < steps.length - 1 ? 'Next' : 'Done'}
           </button>
         </div>
       </div>
