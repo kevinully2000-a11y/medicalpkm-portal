@@ -7686,6 +7686,8 @@ a{color:#f59e0b;text-decoration:none;}a:hover{text-decoration:underline;}</style
     <a href="/apps/private/">&#x1F9ED; Explorer&rsquo;s Archive</a>
     &nbsp;&middot;&nbsp;
     <a href="/apps/shared/fountain-pen/">&#x1F58B; Fountain Pen</a>
+    &nbsp;&middot;&nbsp;
+    <a href="https://coc.medicalpkm.com">&#x1F419; Cthulhu</a>
   </div>
 </footer>
 
