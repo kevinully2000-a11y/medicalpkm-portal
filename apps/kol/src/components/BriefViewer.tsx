@@ -154,8 +154,9 @@ export default function BriefViewer({ brief, showExportButton = true, onUpdate }
 
   const handleExportPdf = async () => {
     const { generateBriefPdf } = await import('@/lib/pdf');
-    const doc = await generateBriefPdf(brief);
-    doc.save(`${brief.kolName.replace(/\s+/g, '-')}-brief.pdf`);
+    const doc = await generateBriefPdf(brief, selectedTier);
+    const tierSuffix = selectedTier === 'comprehensive' ? '' : `-${selectedTier}`;
+    doc.save(`${brief.kolName.replace(/\s+/g, '-')}${tierSuffix}-brief.pdf`);
   };
 
   const toggleSection = (id: string) => {
