@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { KOLBrief, BriefCost, NpiProviderData } from '@/lib/types';
+import { KOLBrief, BriefCost, NpiProviderData, BriefTier } from '@/lib/types';
 import BriefViewer from '@/components/BriefViewer';
 import { ESTIMATED_COST_PER_BRIEF } from '@/lib/constants';
 import { formatCost } from '@/lib/cost';
@@ -32,6 +32,7 @@ function GeneratePageInner() {
   const [elapsed, setElapsed] = useState(0);
   const [actualCost, setActualCost] = useState<BriefCost | null>(null);
   const [researchPhase, setResearchPhase] = useState<{ evidenceLevel: string; pubmedCount: number } | null>(null);
+  const [briefTier, setBriefTier] = useState<BriefTier>('strategic');
 
   useEffect(() => {
     const name = searchParams.get('kolName');
@@ -67,6 +68,7 @@ function GeneratePageInner() {
           headshotUrl: headshotUrl.trim() || undefined,
           npi: npi.trim() || undefined,
           conference: conference.trim() || undefined,
+          briefTier,
         }),
       });
 
@@ -213,6 +215,34 @@ function GeneratePageInner() {
                 <input type="url" id="headshotUrl" value={headshotUrl} onChange={(e) => setHeadshotUrl(e.target.value)} placeholder="https://example.com/photo.jpg" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-gray-900 placeholder-gray-400" disabled={isGenerating} />
               </div>
             </div>
+
+            {/* Brief Tier Selector */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <label className="block text-sm font-medium text-gray-700 mb-3">Brief Depth</label>
+              <div className="grid grid-cols-3 gap-3">
+                {([
+                  { tier: 'executive' as BriefTier, label: 'Executive', desc: '2-page quick prep — header + questions only' },
+                  { tier: 'strategic' as BriefTier, label: 'Strategic', desc: 'Key insights, no filler — recommended' },
+                  { tier: 'comprehensive' as BriefTier, label: 'Comprehensive', desc: 'Full research, all sections' },
+                ]).map(({ tier, label, desc }) => (
+                  <button
+                    key={tier}
+                    type="button"
+                    onClick={() => setBriefTier(tier)}
+                    disabled={isGenerating}
+                    className={`p-3 rounded-lg border-2 text-left transition-colors ${
+                      briefTier === tier
+                        ? 'border-sky-500 bg-sky-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    } disabled:opacity-50`}
+                  >
+                    <p className={`text-sm font-medium ${briefTier === tier ? 'text-sky-700' : 'text-gray-900'}`}>{label}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <p className="text-xs text-gray-400 text-center">
               Estimated cost: ~{formatCost(ESTIMATED_COST_PER_BRIEF)} per brief (Claude Sonnet 4.5)
             </p>

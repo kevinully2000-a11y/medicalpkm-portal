@@ -30,6 +30,7 @@ export interface KOLBrief {
   conferenceSessions?: string[];
   priority?: Priority;
   notes?: string;
+  briefTier?: BriefTier;
 }
 
 export interface LeadershipPosition {
@@ -52,6 +53,8 @@ export interface ConversationStarter {
 
 export type Priority = 'high' | 'medium' | 'low';
 
+export type BriefTier = 'executive' | 'strategic' | 'comprehensive';
+
 export interface GenerateBriefRequest {
   kolName: string;
   institution?: string;
@@ -61,6 +64,7 @@ export interface GenerateBriefRequest {
   npi?: string;
   conference?: string;
   priority?: Priority;
+  briefTier?: BriefTier;
 }
 
 export interface GenerateBriefResponse {
@@ -86,6 +90,7 @@ export interface BriefSummary {
   conferenceSessions?: string[];
   priority?: Priority;
   notes?: string;
+  briefTier?: BriefTier;
 }
 
 export interface BriefCost {

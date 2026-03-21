@@ -40,6 +40,16 @@ ${formatPubMedEvidence(pubmed)}
 
 ${getEvidenceLevelInstructions(evidenceLevel)}
 
+## ANTI-REDUNDANCY RULES (CRITICAL)
+- Each section MUST cover DIFFERENT material. Before writing any section, mentally review what you already wrote. DO NOT repeat themes, facts, or framings across sections.
+- Executive Summary: Why this person matters + leadership authority + partnership value. High-level ONLY — do not go deep on any single topic.
+- Professional Background: Career timeline and positions ONLY (training → appointments → current role). NO research description, NO awards.
+- Expertise & Research: Research domains, methodology, and clinical expertise ONLY. NOT career history, NOT awards.
+- Notable Achievements: Awards, honors, impact metrics, landmark publications ONLY. NOT research description, NOT career history.
+- Recent Work & Trends: 2024-2025 activities ONLY. What are they doing RIGHT NOW? NOT historical accomplishments.
+- If a fact fits multiple sections, include it in only ONE (the most relevant) and do not repeat it.
+- Total brief narrative (all 5 sections combined) should be 1,500-2,500 words for high/moderate evidence. NOT 3,000-5,000. Conciseness is a feature, not a flaw.
+
 ## OUTPUT FORMAT
 You MUST return valid JSON matching this exact structure. Do not include any text outside the JSON object.
 
@@ -153,8 +163,8 @@ Generate a MINIMAL brief:
 // ── Helper: JSON Schema ────────────────────────────────────────────────────
 
 function getJsonSchema(level: import('./research').EvidenceLevel): string {
-  const starterCount = level === 'high' || level === 'moderate' ? 6 :
-                       level === 'low' ? '3-4' : '1-2';
+  const starterCount = level === 'high' || level === 'moderate' ? 'up to 6 — only as many as are specific and data-grounded' :
+                       level === 'low' ? 'up to 3' : 'up to 2';
 
   return `{
   "kolName": "Full Name",
@@ -177,7 +187,7 @@ function getJsonSchema(level: import('./research').EvidenceLevel): string {
   "expertiseAndResearch": "${level === 'minimal' ? 'Based on PubMed topics and web search only' : level === 'low' ? '1-2 paragraphs on verified research areas' : '2-3 paragraphs on core competencies, research focus areas, and topics they could teach authoritatively'}",
   "notableAchievements": "${level === 'minimal' ? 'Only verified achievements or Insufficient verified information available' : level === 'low' ? '1 paragraph on verified achievements' : '2-3 paragraphs on awards, publications, educational contributions, and impact'}",
   "recentWork": "${level === 'minimal' ? 'Only verified recent activity or Insufficient verified information available' : level === 'low' ? '1 paragraph on verified 2024-2025 activities' : '2-3 paragraphs on 2024-2025 activities, recent publications, presentations, educational initiatives'}",
-  "conversationStarters": [${starterCount} objects, each: {"title": "Specific Topic Title", "body": "150-250 word discussion with concrete examples", "question": "Open-ended strategic question to ask the KOL"}],
+  "conversationStarters": [${starterCount} objects, each: {"title": "Specific Topic Title referencing a publication, trial, role, or activity", "body": "50-100 word quick-reference with specific data points — NOT an essay", "question": "Specific question only THIS KOL could answer"}],
   "disclaimer": ${level === 'low' || level === 'minimal' ? '"REQUIRED: Explain what evidence was and was not available"' : '"Optional: Include if any sections have limited evidence"'}
 }`;
 }
@@ -186,30 +196,31 @@ function getJsonSchema(level: import('./research').EvidenceLevel): string {
 
 function getConversationStarterInstructions(level: import('./research').EvidenceLevel): string {
   if (level === 'minimal') {
-    return `- Generate only 1-2 conversation starters
-- Base them ONLY on verified information (even if generic)
-- Each must be 100-200 words
-- Focus on their verified specialty/practice area and general educational partnership value
-- Do NOT reference specific achievements, publications, or positions unless verified`;
+    return `- Generate up to 2 conversation starters — only include ones grounded in verified information
+- Each "body" must be 30-50 words MAX
+- Base them ONLY on verified information from web search
+- Do NOT reference specific achievements, publications, or positions unless verified
+- Do NOT pad with generic talking points`;
   }
 
   if (level === 'low') {
-    return `- Generate 3-4 conversation starters
-- Each must be 150-250 words (strictly enforced)
+    return `- Generate up to 3 conversation starters — only as many as you can make SPECIFIC and data-grounded
+- Each "body" must be 50-100 words MAX. This is a quick-reference card, NOT an essay.
 - Ground them in verified PubMed publications or web search findings
 - At least 1 should reference a specific verified publication or activity
-- At least 1 should explore general educational partnership value in their specialty
-- Do NOT fabricate specific dates, numbers, or achievements`;
+- Do NOT fabricate specific dates, numbers, or achievements
+- Do NOT include generic starters — if you can only find 1 specific topic, generate only 1 starter`;
   }
 
-  return `- Exactly 6 conversation starters required
-- Each must be 150-250 words (strictly enforced)
-- Titles must be specific and descriptive (NOT generic like "Leadership in Cardiology")
-- First paragraph: Concrete examples with dates, numbers, specific names — verified via PubMed or web search
-- Second paragraph: Frame a medical education partnership angle — what value could the KOL gain? Think: amplifying their voice in the areas they've been leading, faculty development, digital distribution of their expertise, learner engagement data, repurposing existing educational content
-- The opening question should be conversational and intriguing, NOT salesy — the goal is to get the KOL talking about their work and how we can help amplify it
-- At least 2 starters should explore how we can amplify the KOL's voice in areas they've been leading
-- At least 2 should connect their research expertise to content creation opportunities
+  return `- Generate UP TO 6 conversation starters — only as many as you can make SPECIFIC and data-grounded. 3 excellent starters beat 6 generic ones. NEVER pad with generic talking points like "Would you like to repurpose your presentation?" or "How do you see the future of [broad field]?"
+- Each "body" MUST be 50-100 words MAX. This is a quick-reference card, NOT an essay.
+- QUALITY GATE: Before including a starter, ask yourself: "Could a generic KOL in the same specialty answer this question?" If yes, DELETE IT. Every starter must be so specific that only THIS KOL would find it relevant.
+- Structure: [1-2 sentences citing a specific verified fact with dates/numbers/names] + [1-2 sentences connecting to educational partnership angle]
+- Titles must name a SPECIFIC publication, trial, role, or activity (e.g., "BaxHTN Phase 3 Lead Author — NEJM Oct 2025" NOT "Leadership in Hypertension Research")
+- Each body MUST include at least one specific data point: drug name, trial name, journal + date, mmHg reduction, patient count, committee name, or award year
+- The "question" must reference something only this KOL would know about — their specific data, their specific role, their specific program
+- DO NOT write paragraphs of background — the user already read the executive summary
+- DO NOT include generic starters about "amplifying your voice" or "repurposing educational content" — these are last-resort filler that signal we didn't do our homework
 - Avoid any language about financial compensation, consulting fees, or paid advisory roles`;
 }
 

@@ -232,6 +232,7 @@ export async function POST(request: NextRequest) {
                   .filter(Boolean)
               : undefined,
             priority: body.priority || undefined,
+            briefTier: body.briefTier || 'strategic',
           };
 
           // Save to KV

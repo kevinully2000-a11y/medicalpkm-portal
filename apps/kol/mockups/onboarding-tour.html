@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Onboarding Tour — KOL Brief Generator</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        'suite-sky': '#0284c7',
+        'suite-amber': '#d97706',
+      }
+    }
+  }
+}
+</script>
+<style>
+  .spotlight {
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+    border-radius: 8px;
+    z-index: 51;
+    pointer-events: none;
+  }
+  .tour-tooltip {
+    z-index: 52;
+    width: 320px;
+  }
+  .overlay-bg {
+    z-index: 50;
+  }
+</style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+<!-- Header Bar -->
+<div class="bg-white border-b border-gray-200">
+  <div class="max-w-7xl mx-auto px-6 h-11 flex items-center justify-between">
+    <nav class="flex gap-0.5 -mb-px">
+      <a href="#" class="px-3 py-2.5 text-sm font-medium border-b-2 border-suite-sky text-suite-sky">Library</a>
+      <a href="#" id="generate-tab" class="px-3 py-2.5 text-sm font-medium border-b-2 border-transparent text-gray-500">Generate Brief</a>
+      <a href="#" class="px-3 py-2.5 text-sm font-medium border-b-2 border-transparent text-gray-500">Batch</a>
+    </nav>
+    <div class="flex items-center gap-2">
+      <button class="w-6 h-6 rounded-full bg-sky-100 text-sky-600 text-xs font-bold flex items-center justify-center" title="Take a Tour">?</button>
+      <span class="px-1.5 py-0.5 bg-gray-100 text-gray-400 rounded text-xs font-medium">v0.6.0</span>
+    </div>
+  </div>
+</div>
+
+<!-- Library Page Content (dimmed behind overlay) -->
+<div class="max-w-7xl mx-auto px-6 py-8">
+  <div class="flex justify-between items-center mb-8">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Brief Library</h1>
+      <p class="mt-1 text-gray-600">Your generated KOL briefs for conference preparation</p>
+    </div>
+    <a href="#" class="px-4 py-2.5 bg-suite-amber text-white font-medium rounded-lg flex items-center gap-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+      New Brief
+    </a>
+  </div>
+
+  <!-- Filter Bar (tour target) -->
+  <div id="search-bar" class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+    <div class="flex items-center gap-3">
+      <div class="flex-1 relative">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" placeholder="Search by name, specialty, conference..." class="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm">
+      </div>
+      <select class="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600">
+        <option>All Dates</option>
+      </select>
+      <select class="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600">
+        <option>All Specialties</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Brief Cards (dimmed) -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 opacity-30">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center text-sky-600 text-sm font-bold">JF</div>
+        <div><p class="font-semibold text-sm">John M. Flack, MD</p><p class="text-xs text-gray-500">Cardiology</p></div>
+      </div>
+      <p class="text-xs text-gray-400">Mar 21, 2026 &middot; $0.22</p>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 text-sm font-bold">AS</div>
+        <div><p class="font-semibold text-sm">Ami Shah, MD</p><p class="text-xs text-gray-500">Interventional Cardiology</p></div>
+      </div>
+      <p class="text-xs text-gray-400">Mar 20, 2026 &middot; $0.19</p>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 text-sm font-bold">RK</div>
+        <div><p class="font-semibold text-sm">Roxana Khashab, MD</p><p class="text-xs text-gray-500">Heart Failure</p></div>
+      </div>
+      <p class="text-xs text-gray-400">Mar 19, 2026 &middot; $0.21</p>
+    </div>
+  </div>
+</div>
+
+<!-- Tour Overlay -->
+<div id="tour-overlay" class="fixed inset-0" style="pointer-events: auto;">
+  <!-- Click blocker -->
+  <div class="overlay-bg absolute inset-0"></div>
+
+  <!-- Spotlight on search bar -->
+  <div id="spotlight" class="spotlight absolute transition-all duration-300"></div>
+
+  <!-- Tooltip -->
+  <div id="tooltip" class="tour-tooltip absolute bg-white rounded-xl shadow-2xl border border-gray-200 p-5 transition-all duration-300">
+    <div class="flex items-center justify-between mb-2">
+      <h3 id="tooltip-title" class="text-base font-semibold text-gray-900">Search & Filter</h3>
+      <span id="tooltip-step" class="text-xs text-gray-400">1/5</span>
+    </div>
+    <p id="tooltip-desc" class="text-sm text-gray-600 mb-4">Find briefs by name, specialty, conference, or priority. Filters update in real-time.</p>
+    <div class="flex items-center justify-between">
+      <button onclick="endTour()" class="text-sm text-gray-400 hover:text-gray-600 transition-colors">Skip tour</button>
+      <button onclick="nextStep()" id="next-btn" class="px-4 py-2 bg-sky-600 text-white text-sm font-medium rounded-lg hover:bg-sky-700 transition-colors">Next</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const steps = [
+  {
+    target: '#search-bar',
+    title: 'Search & Filter',
+    description: 'Find briefs by name, specialty, conference, or priority. Filters update in real-time.',
+    placement: 'bottom',
+  },
+  {
+    target: '#generate-tab',
+    title: 'Generate a Brief',
+    description: 'Create an AI-powered KOL brief with PubMed-verified research and web search validation.',
+    placement: 'bottom',
+  },
+];
+
+let currentStep = 0;
+
+function positionTour() {
+  const step = steps[currentStep];
+  const target = document.querySelector(step.target);
+  if (!target) return;
+
+  const rect = target.getBoundingClientRect();
+  const padding = 8;
+  const spotlight = document.getElementById('spotlight');
+  const tooltip = document.getElementById('tooltip');
+
+  spotlight.style.top = (rect.top - padding + window.scrollY) + 'px';
+  spotlight.style.left = (rect.left - padding) + 'px';
+  spotlight.style.width = (rect.width + padding * 2) + 'px';
+  spotlight.style.height = (rect.height + padding * 2) + 'px';
+
+  const tooltipWidth = 320;
+  let top = rect.bottom + padding + 12 + window.scrollY;
+  let left = Math.max(16, Math.min(rect.left + rect.width / 2 - tooltipWidth / 2, window.innerWidth - tooltipWidth - 16));
+
+  tooltip.style.top = top + 'px';
+  tooltip.style.left = left + 'px';
+
+  document.getElementById('tooltip-title').textContent = step.title;
+  document.getElementById('tooltip-desc').textContent = step.description;
+  document.getElementById('tooltip-step').textContent = (currentStep + 1) + '/' + steps.length;
+  document.getElementById('next-btn').textContent = currentStep < steps.length - 1 ? 'Next' : 'Done';
+}
+
+function nextStep() {
+  if (currentStep < steps.length - 1) {
+    currentStep++;
+    positionTour();
+  } else {
+    endTour();
+  }
+}
+
+function endTour() {
+  document.getElementById('tour-overlay').style.display = 'none';
+}
+
+// Initialize
+positionTour();
+window.addEventListener('resize', positionTour);
+</script>
+
+</body>
+</html>
