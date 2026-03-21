@@ -187,7 +187,7 @@ function getJsonSchema(level: import('./research').EvidenceLevel): string {
   "expertiseAndResearch": "${level === 'minimal' ? 'Based on PubMed topics and web search only' : level === 'low' ? '1-2 paragraphs on verified research areas' : '2-3 paragraphs on core competencies, research focus areas, and topics they could teach authoritatively'}",
   "notableAchievements": "${level === 'minimal' ? 'Only verified achievements or Insufficient verified information available' : level === 'low' ? '1 paragraph on verified achievements' : '2-3 paragraphs on awards, publications, educational contributions, and impact'}",
   "recentWork": "${level === 'minimal' ? 'Only verified recent activity or Insufficient verified information available' : level === 'low' ? '1 paragraph on verified 2024-2025 activities' : '2-3 paragraphs on 2024-2025 activities, recent publications, presentations, educational initiatives'}",
-  "conversationStarters": [${starterCount} objects, each: {"title": "Specific Topic Title referencing a publication, trial, role, or activity", "body": "50-100 word quick-reference with specific data points — NOT an essay", "question": "Specific question only THIS KOL could answer"}],
+  "conversationStarters": [${starterCount} objects, each: {"title": "Specific Topic — Source Year", "body": "• [FACT]: verified claim with number/date.\\n• [CONTEXT]: one sentence of context.\\n• [HOOK]: educational partnership angle. (40-80 words, bullet format ONLY)", "question": "Specific question only THIS KOL could answer"}],
   "disclaimer": ${level === 'low' || level === 'minimal' ? '"REQUIRED: Explain what evidence was and was not available"' : '"Optional: Include if any sections have limited evidence"'}
 }`;
 }
@@ -214,16 +214,32 @@ function getConversationStarterInstructions(level: import('./research').Evidence
 - Do NOT include generic starters — if you can only find 1 specific topic, generate only 1 starter`;
   }
 
-  return `- Generate UP TO 6 conversation starters — only as many as you can make SPECIFIC and data-grounded. 3 excellent starters beat 6 generic ones. NEVER pad with generic talking points like "Would you like to repurpose your presentation?" or "How do you see the future of [broad field]?"
-- CRITICAL: Every starter MUST have all three fields populated: "title", "body", AND "question". Do NOT leave "body" empty. The "body" is the most important field — it provides the data-grounded context the user reads before the meeting.
-- Each "body" MUST be 50-100 words. This is a quick-reference card, NOT an essay. Structure the body as: [1-2 sentences citing a specific verified fact with dates/numbers/names] + [1 sentence connecting to educational partnership angle].
-- QUALITY GATE: Before including a starter, ask yourself: "Could a generic KOL in the same specialty answer this question?" If yes, DELETE IT. Every starter must be so specific that only THIS KOL would find it relevant.
-- Titles must name a SPECIFIC publication, trial, role, or activity (e.g., "BaxHTN Phase 3 Lead Author — NEJM Oct 2025" NOT "Leadership in Hypertension Research")
-- Each body MUST include at least one specific data point: drug name, trial name, journal + date, mmHg reduction, patient count, committee name, or award year
-- The "question" must reference something only this KOL would know about — their specific data, their specific role, their specific program
-- DO NOT write paragraphs of background — the user already read the executive summary
-- DO NOT include generic starters about "amplifying your voice" or "repurposing educational content" — these are last-resort filler that signal we didn't do our homework
-- Avoid any language about financial compensation, consulting fees, or paid advisory roles`;
+  return `- Generate UP TO 6 conversation starters — only as many as you can make SPECIFIC and data-grounded. 3 excellent starters beat 6 generic ones.
+- CRITICAL: Every starter MUST have all three fields populated: "title", "body", AND "question". Do NOT leave "body" empty.
+
+### BODY FORMAT (MANDATORY — follow this EXACT structure):
+Each "body" must use this bullet-point template. Do NOT write flowing prose or paragraphs.
+
+TEMPLATE:
+• [FACT]: One sentence stating a specific verified fact with a number, date, or name.
+• [CONTEXT]: One sentence adding relevant context (e.g., journal, trial phase, patient count, role).
+• [HOOK]: One sentence connecting this to an educational partnership opportunity.
+
+EXAMPLE (GOOD — follow this style):
+"• Led CLEAR Outcomes trial (NEJM, March 2023) — bempedoic acid reduced MACE by 13% in 13,970 statin-intolerant patients.\\n• First large outcomes trial proving a non-statin LDL-lowering drug reduces cardiovascular events.\\n• Faculty opportunity: clinician education on managing the growing statin-intolerant population."
+
+EXAMPLE (BAD — never do this):
+"On The Drive podcast, you expressed frustration with the scientific climate's emphasis on consensus. That podcast reached hundreds of thousands of listeners — a massive physician audience. How did that direct-to-clinician format compare to traditional dissemination? Would serialized educational content reaching similar audiences help accelerate practice change?"
+
+The BAD example is an essay that buries the data point. The GOOD example leads with verifiable facts and ends with a clear hook. ALWAYS use the bullet-point template.
+
+- Each body: 40-80 words MAX. If you hit 80, stop writing.
+- QUALITY GATE: "Could a generic KOL in the same specialty answer this question?" If yes, DELETE IT.
+- Titles must name a SPECIFIC publication, trial, role, or activity (e.g., "CLEAR Outcomes Trial — NEJM 2023" NOT "Leadership in Lipid Research")
+- The "question" must reference something only THIS KOL would know — their specific data, role, or program
+- NEVER write paragraphs of background — the user already read the executive summary
+- NEVER include generic starters about "amplifying your voice" or "repurposing educational content"
+- NEVER mention financial compensation, consulting fees, or paid advisory roles`;
 }
 
 // ── User Prompt Builder ────────────────────────────────────────────────────

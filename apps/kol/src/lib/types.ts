@@ -65,6 +65,7 @@ export interface GenerateBriefRequest {
   conference?: string;
   priority?: Priority;
   briefTier?: BriefTier;
+  maxWebSearches?: number;
 }
 
 export interface GenerateBriefResponse {
