@@ -7290,638 +7290,425 @@ a{color:#f59e0b;text-decoration:none;}a:hover{text-decoration:underline;}</style
       responseHTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MedicalPKM &mdash; Your Tools</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --suite-nav: #1e293b;
-            --suite-bg: #f8fafc;
-            --suite-amber: #d97706;
-            --suite-sky: #0ea5e9;
-            --suite-emerald: #10b981;
-            --text: #0f172a;
-            --text-light: #64748b;
-            --border: #e2e8f0;
-            --card-bg: #ffffff;
-            --shadow: 0 1px 3px rgba(0,0,0,0.08);
-            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
-            --radius: 12px;
-            --arcane: #7c3aed;
-            --arcane-glow: #a78bfa;
-            --arcane-dark: #4c1d95;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedicalPKM &mdash; Conference-Ready KOL Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --sky-600: #0284c7;
+    --sky-700: #0369a1;
+    --sky-50: #f0f9ff;
+    --sky-100: #e0f2fe;
+    --slate-50: #f8fafc;
+    --slate-100: #f1f5f9;
+    --slate-200: #e2e8f0;
+    --slate-300: #cbd5e1;
+    --slate-400: #94a3b8;
+    --slate-500: #64748b;
+    --slate-600: #475569;
+    --slate-700: #334155;
+    --slate-800: #1e293b;
+    --slate-900: #0f172a;
+  }
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--suite-bg);
-            color: var(--text);
-            line-height: 1.6;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: var(--slate-800);
+    background: var(--slate-50);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
 
-        /* ========= SUITE NAV (matches KOL app) ========= */
-        .suite-nav {
-            background: var(--suite-nav);
-            height: 48px;
-            display: flex;
-            align-items: center;
-            padding: 0 1.5rem;
-            position: sticky;
-            top: 0;
-            z-index: 50;
-        }
+  /* Nav */
+  .top-nav {
+    background: white;
+    border-bottom: 1px solid var(--slate-200);
+    padding: 0 24px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
 
-        .suite-nav-inner {
-            max-width: 1120px;
-            width: 100%;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+  .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--slate-900);
+  }
 
-        .suite-logo {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.875rem;
-            letter-spacing: -0.01em;
-        }
+  .nav-logo {
+    width: 32px;
+    height: 32px;
+    background: var(--sky-600);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+  }
 
-        .suite-logo-icon {
-            color: #f59e0b;
-            font-size: 1.1rem;
-            font-weight: 700;
-        }
+  .nav-title {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
 
-        .suite-nav-right {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
 
-        .suite-nav-link {
-            color: #94a3b8;
-            text-decoration: none;
-            font-size: 0.8125rem;
-            font-weight: 500;
-            padding: 0.375rem 0.625rem;
-            border-radius: 6px;
-            transition: color 0.15s, background 0.15s;
-        }
+  .nav-links a {
+    font-size: 13px;
+    color: var(--slate-500);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
 
-        .suite-nav-link:hover {
-            color: white;
-            background: rgba(255,255,255,0.08);
-        }
+  .nav-links a:hover {
+    color: var(--slate-800);
+  }
 
-        /* ========= MAIN CONTENT ========= */
-        main {
-            max-width: 880px;
-            width: 100%;
-            margin: 0 auto;
-            padding: 2.5rem 1.5rem 3rem;
-            flex: 1;
-        }
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, var(--slate-900) 0%, var(--sky-700) 100%);
+    color: white;
+    padding: 80px 24px 88px;
+    text-align: center;
+  }
 
-        .page-title {
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--text-light);
-            margin-bottom: 1.25rem;
-        }
+  .hero-eyebrow {
+    font-size: 13px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 16px;
+  }
 
-        /* ========= APP CARDS ========= */
-        .app-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1rem;
-        }
+  .hero h1 {
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+    max-width: 640px;
+    margin: 0 auto 20px;
+  }
 
-        .app-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 1.5rem 1.5rem 1.5rem 0;
-            box-shadow: var(--shadow);
-            transition: box-shadow 0.2s, transform 0.2s;
-            display: flex;
-            text-decoration: none;
-            color: inherit;
-            overflow: hidden;
-        }
+  .hero p {
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.75);
+    max-width: 520px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
 
-        .app-card:hover {
-            box-shadow: var(--shadow-md);
-            transform: translateY(-2px);
-        }
+  /* Main content */
+  .main-content {
+    max-width: 720px;
+    margin: -48px auto 0;
+    padding: 0 24px 80px;
+    position: relative;
+    z-index: 10;
+    flex: 1;
+  }
 
-        .card-accent {
-            width: 4px;
-            border-radius: 0 4px 4px 0;
-            flex-shrink: 0;
-            margin-right: 1.25rem;
-        }
+  /* Product Card */
+  .product-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+  }
 
-        .accent-sky { background: var(--suite-sky); }
-        .accent-emerald { background: var(--suite-emerald); }
+  .card-header {
+    padding: 32px 32px 24px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
 
-        .card-body {
-            flex: 1;
-            min-width: 0;
-        }
+  .card-header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
 
-        .card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.75rem;
-            margin-bottom: 0.5rem;
-        }
+  .card-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--sky-50);
+    border: 1px solid var(--sky-100);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
 
-        .card-title {
-            font-size: 1.05rem;
-            font-weight: 600;
-            color: var(--text);
-        }
+  .card-title {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--slate-900);
+  }
 
-        .card-version {
-            font-size: 0.7rem;
-            font-weight: 500;
-            color: var(--text-light);
-            background: #f1f5f9;
-            padding: 0.15rem 0.5rem;
-            border-radius: 4px;
-            flex-shrink: 0;
-        }
+  .card-subtitle {
+    font-size: 14px;
+    color: var(--slate-500);
+    margin-top: 2px;
+  }
 
-        .card-desc {
-            font-size: 0.875rem;
-            color: var(--text-light);
-            line-height: 1.5;
-            margin-bottom: 1rem;
-        }
+  .version-badge {
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--sky-50);
+    color: var(--sky-600);
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--sky-100);
+    white-space: nowrap;
+  }
 
-        .card-cta {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.375rem;
-            font-size: 0.8125rem;
-            font-weight: 600;
-            color: var(--suite-amber);
-            transition: gap 0.15s;
-        }
+  .card-body {
+    padding: 0 32px 28px;
+  }
 
-        .app-card:hover .card-cta {
-            gap: 0.625rem;
-        }
+  .card-description {
+    font-size: 15px;
+    color: var(--slate-600);
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
 
-        .card-cta-arrow {
-            transition: transform 0.15s;
-        }
+  .features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
 
-        .app-card:hover .card-cta-arrow {
-            transform: translateX(2px);
-        }
+  .feature {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--slate-700);
+  }
 
-        /* ========= COMING SOON ========= */
-        .coming-soon {
-            margin-top: 2.5rem;
-        }
+  .feature-icon {
+    width: 28px;
+    height: 28px;
+    background: var(--sky-50);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 14px;
+  }
 
-        .coming-soon-title {
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--text-light);
-            margin-bottom: 0.75rem;
-        }
+  .card-footer {
+    padding: 20px 32px;
+    border-top: 1px solid var(--slate-100);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
 
-        .coming-soon-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
+  .cta-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--sky-600);
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 12px 28px;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: background 0.15s, transform 0.1s;
+  }
 
-        .coming-soon-item {
-            font-size: 0.8125rem;
-            color: var(--text-light);
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            padding: 0.375rem 0.875rem;
-            border-radius: 20px;
-            white-space: nowrap;
-        }
+  .cta-button:hover {
+    background: var(--sky-700);
+    transform: translateY(-1px);
+  }
 
-        /* ========= ARCANE SEAL ========= */
-        .arcane-container {
-            margin: 3rem 0 1rem;
-            display: flex;
-            justify-content: center;
-        }
+  .card-meta {
+    font-size: 13px;
+    color: var(--slate-400);
+  }
 
-        .arcane-seal {
-            position: relative;
-            width: 100px;
-            height: 100px;
-            cursor: pointer;
-            transition: transform 0.4s ease;
-        }
+  /* Footer */
+  .site-footer {
+    text-align: center;
+    padding: 32px 24px;
+    font-size: 13px;
+    color: var(--slate-400);
+    border-top: 1px solid var(--slate-200);
+  }
 
-        .arcane-seal:hover { transform: scale(1.08); }
-        .arcane-seal:hover .seal-glow { opacity: 0.6; }
+  .footer-copy {
+    cursor: default;
+    user-select: none;
+    transition: color 0.3s;
+  }
 
-        .seal-glow {
-            position: absolute;
-            inset: -15px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(124,58,237,0.3) 0%, transparent 70%);
-            opacity: 0.2;
-            transition: opacity 0.4s ease;
-            animation: pulse-glow 3s ease-in-out infinite;
-        }
+  .footer-copy.activated {
+    color: var(--sky-600);
+  }
 
-        @keyframes pulse-glow {
-            0%, 100% { opacity: 0.15; transform: scale(1); }
-            50% { opacity: 0.3; transform: scale(1.05); }
-        }
+  .secret-link {
+    display: none;
+    margin-top: 8px;
+    font-size: 12px;
+  }
 
-        .seal-svg {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-        }
+  .secret-link.visible {
+    display: block;
+    animation: fadeIn 0.5s ease;
+  }
 
-        .arcane-hint {
-            text-align: center;
-            font-size: 0.7rem;
-            color: var(--arcane-glow);
-            opacity: 0.4;
-            margin-top: 0.4rem;
-            font-style: italic;
-            letter-spacing: 0.05em;
-            transition: opacity 0.3s;
-        }
+  .secret-link a {
+    color: var(--slate-400);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
 
-        .arcane-container:hover .arcane-hint { opacity: 0.7; }
+  .secret-link a:hover {
+    color: var(--sky-600);
+  }
 
-        /* ========= D&D OVERLAY ========= */
-        .dnd-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 1000;
-            background: rgba(10, 5, 20, 0.92);
-            backdrop-filter: blur(8px);
-            justify-content: center;
-            align-items: center;
-            animation: overlay-in 0.3s ease;
-        }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 
-        .dnd-overlay.active { display: flex; }
-
-        @keyframes overlay-in {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .dnd-content {
-            text-align: center;
-            max-width: 480px;
-            padding: 2rem;
-            animation: content-rise 0.4s ease 0.1s both;
-        }
-
-        @keyframes content-rise {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .mimic-container {
-            width: 200px;
-            height: 200px;
-            margin: 0 auto 2rem;
-            position: relative;
-        }
-
-        .mimic-container svg {
-            width: 100%;
-            height: 100%;
-            filter: drop-shadow(0 0 20px rgba(124,58,237,0.4));
-        }
-
-        .dnd-title {
-            font-family: Georgia, 'Times New Roman', serif;
-            font-size: 1.8rem;
-            color: #e9d5ff;
-            margin-bottom: 0.5rem;
-            text-shadow: 0 0 20px rgba(167,139,250,0.5);
-        }
-
-        .dnd-subtitle {
-            font-family: Georgia, 'Times New Roman', serif;
-            font-size: 1rem;
-            color: #a78bfa;
-            font-style: italic;
-            margin-bottom: 1.5rem;
-        }
-
-        .dnd-text {
-            font-size: 0.95rem;
-            color: #c4b5fd;
-            line-height: 1.7;
-            margin-bottom: 2rem;
-            opacity: 0.85;
-        }
-
-        .dnd-text em { color: #e9d5ff; font-style: normal; }
-
-        .dnd-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: linear-gradient(135deg, var(--arcane) 0%, var(--arcane-dark) 100%);
-            color: white;
-            border: 1px solid rgba(167,139,250,0.3);
-            border-radius: 8px;
-            padding: 0.75rem 2rem;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-family: inherit;
-        }
-
-        .dnd-btn:hover {
-            background: linear-gradient(135deg, #8b5cf6 0%, #5b21b6 100%);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(124,58,237,0.4);
-        }
-
-        .dnd-btn-group {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .dnd-btn-enter {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: transparent;
-            color: #a78bfa;
-            border: 1px solid rgba(167,139,250,0.4);
-            border-radius: 8px;
-            padding: 0.75rem 2rem;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-family: inherit;
-            text-decoration: none;
-        }
-
-        .dnd-btn-enter:hover {
-            background: rgba(124,58,237,0.15);
-            border-color: rgba(167,139,250,0.7);
-            color: #c4b5fd;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(124,58,237,0.2);
-        }
-
-        .dnd-flavor {
-            margin-top: 1.5rem;
-            font-size: 0.72rem;
-            color: #6d28d9;
-            opacity: 0.5;
-            font-style: italic;
-        }
-
-        /* ========= FOOTER ========= */
-        footer {
-            text-align: center;
-            padding: 1.5rem;
-            font-size: 0.78rem;
-            color: var(--text-light);
-            border-top: 1px solid var(--border);
-        }
-
-        footer a {
-            color: var(--suite-sky);
-            text-decoration: none;
-        }
-
-        footer a:hover { text-decoration: underline; }
-
-        /* ========= RESPONSIVE ========= */
-        @media (min-width: 640px) {
-            .app-grid { grid-template-columns: 1fr 1fr; }
-        }
-    </style>
+  /* Responsive */
+  @media (max-width: 600px) {
+    .hero { padding: 56px 20px 72px; }
+    .hero p { font-size: 16px; }
+    .main-content { padding: 0 16px 60px; }
+    .card-header { padding: 24px 20px 20px; flex-direction: column; gap: 12px; }
+    .card-body { padding: 0 20px 24px; }
+    .card-footer { padding: 16px 20px; flex-direction: column; gap: 12px; align-items: stretch; text-align: center; }
+    .features { grid-template-columns: 1fr; }
+    .cta-button { justify-content: center; }
+  }
+</style>
 </head>
 <body>
 
-<!-- Suite Nav -->
-<nav class="suite-nav">
-    <div class="suite-nav-inner">
-        <a href="/" class="suite-logo">
-            <span class="suite-logo-icon">&#9672;</span>
-            <span>MedicalPKM</span>
-        </a>
-        <div class="suite-nav-right">
-            <a href="https://kol.medicalpkm.com" class="suite-nav-link">KOL Briefs</a>
-            <a href="https://coc.medicalpkm.com" class="suite-nav-link">Cthulhu Investigator</a>
-            <a href="/apps/shared/fountain-pen/" class="suite-nav-link">Fountain Pen</a>
-        </div>
-    </div>
+<nav class="top-nav">
+  <a href="/" class="nav-brand">
+    <div class="nav-logo">M</div>
+    <span class="nav-title">MedicalPKM</span>
+  </a>
+  <div class="nav-links">
+    <a href="https://kol.medicalpkm.com">KOL Briefs</a>
+    <a href="/admin/">Admin</a>
+  </div>
 </nav>
 
-<main>
-    <div class="page-title">Your Tools</div>
+<section class="hero">
+  <div class="hero-eyebrow">Medical Affairs Intelligence Platform</div>
+  <h1>Conference-Ready KOL Intelligence</h1>
+  <p>Generate evidence-grounded KOL briefing documents for your next conference in minutes, not hours.</p>
+</section>
 
-    <div class="app-grid">
-
-        <a href="https://kol.medicalpkm.com" class="app-card">
-            <div class="card-accent accent-sky"></div>
-            <div class="card-body">
-                <div class="card-header">
-                    <span class="card-title">KOL Brief Generator</span>
-                    <span class="card-version">v0.4.0</span>
-                </div>
-                <p class="card-desc">Generate comprehensive PDF briefs for Key Opinion Leaders. Conference prep with leadership analysis, expertise mapping, and conversation starters.</p>
-                <span class="card-cta">Open <span class="card-cta-arrow">&rarr;</span></span>
-            </div>
-        </a>
-
-        <a href="https://coc.medicalpkm.com" class="app-card">
-            <div class="card-accent" style="background: #10b981;"></div>
-            <div class="card-body">
-                <div class="card-header">
-                    <span class="card-title">Cthulhu Investigator</span>
-                    <span class="card-version">v0.1.0</span>
-                </div>
-                <p class="card-desc">Play solo horror adventures with an AI Keeper, generate investigators, and roll your fate. AI-generated Call of Cthulhu RPG adventures.</p>
-                <span class="card-cta">Open <span class="card-cta-arrow">&rarr;</span></span>
-            </div>
-        </a>
-
-        <a href="/apps/shared/fountain-pen/" class="app-card">
-            <div class="card-accent accent-emerald"></div>
-            <div class="card-body">
-                <div class="card-header">
-                    <span class="card-title">Fountain Pen Companion</span>
-                    <span class="card-version">v1.0</span>
-                </div>
-                <p class="card-desc">Track your fountain pen collection, ink inventory, and pen-ink pairings. Visual catalog with usage notes and ratings.</p>
-                <span class="card-cta">Open <span class="card-cta-arrow">&rarr;</span></span>
-            </div>
-        </a>
-
-    </div>
-
-    <div class="coming-soon">
-        <div class="coming-soon-title">Coming Soon</div>
-        <div class="coming-soon-list">
-            <span class="coming-soon-item">Clinical Notes</span>
-            <span class="coming-soon-item">Data Viz</span>
-            <span class="coming-soon-item">Reading List</span>
-            <span class="coming-soon-item">Reference Manager</span>
+<main class="main-content">
+  <div class="product-card">
+    <div class="card-header">
+      <div class="card-header-left">
+        <div class="card-icon">&#x1F4CA;</div>
+        <div>
+          <div class="card-title">KOL Brief Generator</div>
+          <div class="card-subtitle">AI-powered briefing documents</div>
         </div>
+      </div>
+      <span class="version-badge">v0.6.0</span>
     </div>
 
-    <!-- Arcane Seal (D&D Easter Egg) -->
-    <div class="arcane-container" onclick="openSanctum()">
-        <div style="display:flex;flex-direction:column;align-items:center;">
-            <div class="arcane-seal">
-                <div class="seal-glow"></div>
-                <svg class="seal-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="60" cy="60" r="55" fill="none" stroke="#7c3aed" stroke-width="1.5" opacity="0.4"/>
-                    <circle cx="60" cy="60" r="50" fill="none" stroke="#a78bfa" stroke-width="0.8" opacity="0.3" stroke-dasharray="4 6"/>
-                    <circle cx="60" cy="60" r="38" fill="rgba(124,58,237,0.06)" stroke="#7c3aed" stroke-width="1" opacity="0.6"/>
-                    <polygon points="60,25 88,50 80,82 40,82 32,50" fill="none" stroke="#a78bfa" stroke-width="1.2" opacity="0.7"/>
-                    <polygon points="60,35 78,65 42,65" fill="none" stroke="#7c3aed" stroke-width="1" opacity="0.5"/>
-                    <ellipse cx="60" cy="55" rx="10" ry="6" fill="none" stroke="#c4b5fd" stroke-width="1" opacity="0.8"/>
-                    <circle cx="60" cy="55" r="2.5" fill="#a78bfa" opacity="0.9"/>
-                    <circle cx="60" cy="8" r="2" fill="#7c3aed" opacity="0.5"/>
-                    <circle cx="60" cy="112" r="2" fill="#7c3aed" opacity="0.5"/>
-                    <circle cx="8" cy="60" r="2" fill="#7c3aed" opacity="0.5"/>
-                    <circle cx="112" cy="60" r="2" fill="#7c3aed" opacity="0.5"/>
-                    <line x1="60" y1="12" x2="60" y2="22" stroke="#7c3aed" stroke-width="0.6" opacity="0.3"/>
-                    <line x1="60" y1="98" x2="60" y2="108" stroke="#7c3aed" stroke-width="0.6" opacity="0.3"/>
-                    <line x1="12" y1="60" x2="22" y2="60" stroke="#7c3aed" stroke-width="0.6" opacity="0.3"/>
-                    <line x1="98" y1="60" x2="108" y2="60" stroke="#7c3aed" stroke-width="0.6" opacity="0.3"/>
-                    <text x="60" y="80" text-anchor="middle" font-size="9" fill="#a78bfa" opacity="0.5" font-family="Georgia, serif">XX</text>
-                </svg>
-            </div>
-            <div class="arcane-hint">Roll for Perception</div>
+    <div class="card-body">
+      <p class="card-description">
+        Create comprehensive KOL briefing documents backed by PubMed research and real-time web data. Built for medical affairs teams preparing for conference meetings.
+      </p>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">&#x2705;</div>
+          <span>Evidence-grounded</span>
         </div>
+        <div class="feature">
+          <div class="feature-icon">&#x1F4DA;</div>
+          <span>PubMed-verified</span>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">&#x1F4C4;</div>
+          <span>PDF export</span>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">&#x1F4E6;</div>
+          <span>Batch generation</span>
+        </div>
+      </div>
     </div>
+
+    <div class="card-footer">
+      <a href="https://kol.medicalpkm.com" class="cta-button">
+        Open KOL Briefs &#x2192;
+      </a>
+      <span class="card-meta">Updated March 2026</span>
+    </div>
+  </div>
 </main>
 
-<footer>
-    <p>MedicalPKM &copy; 2026</p>
+<footer class="site-footer">
+  <div class="footer-copy" id="footerCopy">MedicalPKM &copy; 2026</div>
+  <div class="secret-link" id="secretLink">
+    <a href="/apps/private/">&#x1F9ED; Explorer&rsquo;s Archive</a>
+    &nbsp;&middot;&nbsp;
+    <a href="/apps/shared/fountain-pen/">&#x1F58B; Fountain Pen</a>
+  </div>
 </footer>
 
-<!-- D&D Overlay -->
-<div class="dnd-overlay" id="dndOverlay">
-    <div class="dnd-content">
-        <div class="mimic-container">
-            <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                <ellipse cx="70" cy="95" rx="6" ry="4" fill="none" stroke="#7c3aed" stroke-width="1.5" opacity="0.6" transform="rotate(-20,70,95)"/>
-                <ellipse cx="60" cy="90" rx="6" ry="4" fill="none" stroke="#7c3aed" stroke-width="1.5" opacity="0.5" transform="rotate(15,60,90)"/>
-                <ellipse cx="130" cy="95" rx="6" ry="4" fill="none" stroke="#7c3aed" stroke-width="1.5" opacity="0.6" transform="rotate(20,130,95)"/>
-                <ellipse cx="140" cy="90" rx="6" ry="4" fill="none" stroke="#7c3aed" stroke-width="1.5" opacity="0.5" transform="rotate(-15,140,90)"/>
-                <rect x="45" y="100" width="110" height="65" rx="4" fill="#1a0a2e" stroke="#7c3aed" stroke-width="2"/>
-                <path d="M45,100 Q45,70 100,65 Q155,70 155,100 Z" fill="#1a0a2e" stroke="#7c3aed" stroke-width="2"/>
-                <path d="M55,95 Q55,78 100,74 Q145,78 145,95" fill="none" stroke="#a78bfa" stroke-width="0.8" opacity="0.4"/>
-                <line x1="45" y1="120" x2="155" y2="120" stroke="#a78bfa" stroke-width="1.5" opacity="0.4"/>
-                <line x1="45" y1="145" x2="155" y2="145" stroke="#a78bfa" stroke-width="1.5" opacity="0.4"/>
-                <circle cx="100" cy="105" r="12" fill="none" stroke="#c4b5fd" stroke-width="1.5" opacity="0.7"/>
-                <ellipse cx="100" cy="105" rx="8" ry="5" fill="none" stroke="#a78bfa" stroke-width="1"/>
-                <circle cx="100" cy="105" r="3" fill="#7c3aed">
-                    <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite"/>
-                </circle>
-                <rect x="98" y="110" width="4" height="8" rx="1" fill="#4c1d95" opacity="0.8"/>
-                <circle cx="52" cy="107" r="2" fill="#a78bfa" opacity="0.3"/>
-                <circle cx="148" cy="107" r="2" fill="#a78bfa" opacity="0.3"/>
-                <circle cx="52" cy="158" r="2" fill="#a78bfa" opacity="0.3"/>
-                <circle cx="148" cy="158" r="2" fill="#a78bfa" opacity="0.3"/>
-                <text x="72" y="138" font-size="12" fill="#7c3aed" opacity="0.3" font-family="Georgia, serif">&#9734;</text>
-                <text x="118" y="138" font-size="12" fill="#7c3aed" opacity="0.3" font-family="Georgia, serif">&#9734;</text>
-                <circle cx="40" cy="85" r="1.5" fill="#a78bfa" opacity="0.4">
-                    <animate attributeName="cy" values="85;78;85" dur="3s" repeatCount="indefinite"/>
-                    <animate attributeName="opacity" values="0.4;0.1;0.4" dur="3s" repeatCount="indefinite"/>
-                </circle>
-                <circle cx="160" cy="82" r="1" fill="#c4b5fd" opacity="0.3">
-                    <animate attributeName="cy" values="82;75;82" dur="2.5s" repeatCount="indefinite"/>
-                    <animate attributeName="opacity" values="0.3;0.1;0.3" dur="2.5s" repeatCount="indefinite"/>
-                </circle>
-                <circle cx="100" cy="55" r="1.5" fill="#a78bfa" opacity="0.3">
-                    <animate attributeName="cy" values="55;48;55" dur="2.8s" repeatCount="indefinite"/>
-                    <animate attributeName="opacity" values="0.3;0;0.3" dur="2.8s" repeatCount="indefinite"/>
-                </circle>
-            </svg>
-        </div>
-
-        <div class="dnd-title">The Mimic&rsquo;s Warning</div>
-        <div class="dnd-subtitle">&ldquo;Not every chest yields its treasures willingly.&rdquo;</div>
-        <div class="dnd-text">
-            You reach for the chest, but it snaps shut with a low growl.
-            Its arcane lock pulses with a <em>Glyph of Warding</em> &mdash;
-            these vaults are sealed by the Dungeon Master and opened only
-            for those who carry the right sigils.
-        </div>
-
-        <div class="dnd-btn-group">
-            <a href="/apps/private/" class="dnd-btn-enter">
-                &#9758; Speak Friend and Enter
-            </a>
-            <button class="dnd-btn" onclick="closeSanctum()">
-                &#9664; Retreat to Safety
-            </button>
-        </div>
-
-        <div class="dnd-flavor">
-            &ldquo;A wise adventurer knows when to pick their battles.&rdquo; &mdash; Dungeon Master&rsquo;s Guide
-        </div>
-    </div>
-</div>
-
 <script>
-    function openSanctum() {
-        document.getElementById('dndOverlay').classList.add('active');
-        document.body.style.overflow = 'hidden';
+(function() {
+  var clicks = 0;
+  var timer = null;
+  var footer = document.getElementById('footerCopy');
+  var secret = document.getElementById('secretLink');
+
+  footer.addEventListener('click', function() {
+    clicks++;
+    if (timer) clearTimeout(timer);
+
+    if (clicks >= 3) {
+      footer.classList.add('activated');
+      secret.classList.add('visible');
+      clicks = 0;
+    } else {
+      timer = setTimeout(function() { clicks = 0; }, 1500);
     }
-
-    function closeSanctum() {
-        document.getElementById('dndOverlay').classList.remove('active');
-        document.body.style.overflow = '';
-    }
-
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') closeSanctum();
-    });
-
-    document.getElementById('dndOverlay').addEventListener('click', function(e) {
-        if (e.target === this) closeSanctum();
-    });
+  });
+})();
 </script>
 
 </body>
