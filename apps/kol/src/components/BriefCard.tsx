@@ -68,7 +68,8 @@ export default function BriefCard({
 
   return (
     <div
-      className={`bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col ${
+      onClick={() => onView(brief.id)}
+      className={`bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col cursor-pointer hover:shadow-md hover:border-gray-300 transition-all ${
         brief.hidden ? 'opacity-60' : ''
       }`}
     >
@@ -157,7 +158,7 @@ export default function BriefCard({
         </div>
       </div>
 
-      <div className="mt-4 pt-4 border-t border-gray-100 flex gap-2">
+      <div className="mt-4 pt-4 border-t border-gray-100 flex gap-2" onClick={(e) => e.stopPropagation()}>
         <button
           onClick={() => onView(brief.id)}
           className="flex-1 px-3 py-2 bg-suite-sky text-white text-sm font-medium rounded-lg hover:bg-sky-600 transition-colors"

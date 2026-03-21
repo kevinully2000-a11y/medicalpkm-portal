@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import { KOLBrief } from '@/lib/types';
+import { KOLBrief, BriefTier } from '@/lib/types';
 
 const PAGE_WIDTH = 210;
 const MARGIN = 20;
@@ -148,7 +148,7 @@ function drawInitialsCircle(doc: jsPDF, name: string, x: number, y: number, size
   doc.text(initials, centerX - textWidth / 2, centerY + 2);
 }
 
-export async function generateBriefPdf(brief: KOLBrief): Promise<jsPDF> {
+export async function generateBriefPdf(brief: KOLBrief, tier: BriefTier = 'comprehensive'): Promise<jsPDF> {
   const doc = new jsPDF('p', 'mm', 'a4');
   let y = 20;
 
@@ -358,19 +358,27 @@ export async function generateBriefPdf(brief: KOLBrief): Promise<jsPDF> {
     y += 12;
   }
 
-  // === Content sections ===
-  const sections: [string, string][] = [
-    ['Executive Summary', brief.executiveSummary],
-    ['Professional Background', brief.professionalBackground],
-    ['Expertise & Research Focus', brief.expertiseAndResearch],
-    ['Notable Achievements', brief.notableAchievements],
-    ['Recent Work & Trends', brief.recentWork],
+  // === Content sections (filtered by tier) ===
+  const allSections: [string, string, BriefTier[]][] = [
+    ['Executive Summary', brief.executiveSummary, ['executive', 'strategic', 'comprehensive']],
+    ['Professional Background', brief.professionalBackground, ['strategic', 'comprehensive']],
+    ['Expertise & Research Focus', brief.expertiseAndResearch, ['strategic', 'comprehensive']],
+    ['Notable Achievements', brief.notableAchievements, ['comprehensive']],
+    ['Recent Work & Trends', brief.recentWork, ['strategic', 'comprehensive']],
   ];
 
-  for (const [title, content] of sections) {
-    if (!content) continue;
+  for (const [title, content, tiers] of allSections) {
+    if (!content || !tiers.includes(tier)) continue;
+
+    // In strategic tier, truncate Professional Background to first paragraph
+    let displayContent = content;
+    if (tier === 'strategic' && title === 'Professional Background') {
+      const firstPara = content.split('\n\n')[0];
+      displayContent = firstPara;
+    }
+
     y = addSectionTitle(doc, title, y);
-    y = addWrappedText(doc, content, y);
+    y = addWrappedText(doc, displayContent, y);
     y += 4;
   }
 
@@ -396,8 +404,10 @@ export async function generateBriefPdf(brief: KOLBrief): Promise<jsPDF> {
       doc.text(`${i + 1}. ${starter.title}`, MARGIN, y);
       y += 7;
 
-      // Body
-      y = addWrappedText(doc, starter.body, y);
+      // Body (skip in executive tier for conciseness)
+      if (tier !== 'executive') {
+        y = addWrappedText(doc, starter.body, y);
+      }
 
       // Strategic question
       if (starter.question) {
@@ -431,8 +441,9 @@ export async function generateBriefPdf(brief: KOLBrief): Promise<jsPDF> {
     const evidenceTag = brief.evidence?.evidenceLevel
       ? ` | Evidence: ${brief.evidence.evidenceLevel}`
       : '';
+    const tierLabel = tier.charAt(0).toUpperCase() + tier.slice(1);
     doc.text(
-      `Generated ${new Date(brief.generatedAt).toLocaleDateString()} | KOL Brief Generator v${brief.appVersion || 'unknown'}${evidenceTag}`,
+      `Generated ${new Date(brief.generatedAt).toLocaleDateString()} | ${tierLabel} Brief | v${brief.appVersion || 'unknown'}${evidenceTag}`,
       MARGIN,
       290
     );
