@@ -197,6 +197,7 @@ function getJsonSchema(level: import('./research').EvidenceLevel): string {
 function getConversationStarterInstructions(level: import('./research').EvidenceLevel): string {
   if (level === 'minimal') {
     return `- Generate up to 2 conversation starters — only include ones grounded in verified information
+- CRITICAL: Every starter MUST have all three fields: "title", "body", AND "question". Never leave "body" empty.
 - Each "body" must be 30-50 words MAX
 - Base them ONLY on verified information from web search
 - Do NOT reference specific achievements, publications, or positions unless verified
@@ -205,6 +206,7 @@ function getConversationStarterInstructions(level: import('./research').Evidence
 
   if (level === 'low') {
     return `- Generate up to 3 conversation starters — only as many as you can make SPECIFIC and data-grounded
+- CRITICAL: Every starter MUST have all three fields: "title", "body", AND "question". Never leave "body" empty.
 - Each "body" must be 50-100 words MAX. This is a quick-reference card, NOT an essay.
 - Ground them in verified PubMed publications or web search findings
 - At least 1 should reference a specific verified publication or activity
@@ -213,9 +215,9 @@ function getConversationStarterInstructions(level: import('./research').Evidence
   }
 
   return `- Generate UP TO 6 conversation starters — only as many as you can make SPECIFIC and data-grounded. 3 excellent starters beat 6 generic ones. NEVER pad with generic talking points like "Would you like to repurpose your presentation?" or "How do you see the future of [broad field]?"
-- Each "body" MUST be 50-100 words MAX. This is a quick-reference card, NOT an essay.
+- CRITICAL: Every starter MUST have all three fields populated: "title", "body", AND "question". Do NOT leave "body" empty. The "body" is the most important field — it provides the data-grounded context the user reads before the meeting.
+- Each "body" MUST be 50-100 words. This is a quick-reference card, NOT an essay. Structure the body as: [1-2 sentences citing a specific verified fact with dates/numbers/names] + [1 sentence connecting to educational partnership angle].
 - QUALITY GATE: Before including a starter, ask yourself: "Could a generic KOL in the same specialty answer this question?" If yes, DELETE IT. Every starter must be so specific that only THIS KOL would find it relevant.
-- Structure: [1-2 sentences citing a specific verified fact with dates/numbers/names] + [1-2 sentences connecting to educational partnership angle]
 - Titles must name a SPECIFIC publication, trial, role, or activity (e.g., "BaxHTN Phase 3 Lead Author — NEJM Oct 2025" NOT "Leadership in Hypertension Research")
 - Each body MUST include at least one specific data point: drug name, trial name, journal + date, mmHg reduction, patient count, committee name, or award year
 - The "question" must reference something only this KOL would know about — their specific data, their specific role, their specific program
